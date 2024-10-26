@@ -1,10 +1,7 @@
 const config = require('./src/config');
-require("dotenv").config({
-  path: `.env.${process.env.NODE_ENV}`,
-});
-
+require("dotenv").config();
 const strapiConfig = {
-  apiURL: process.env.STRAPI_API_URL || "http://localhost:1337",
+  apiURL: process.env.STRAPI_API_URL || config.strapi.apiURL,
   collectionTypes: [
     {
       singularName: "job",
@@ -45,8 +42,8 @@ const strapiConfig = {
       },
     }
   ],
-  queryLimit: Infinity, // Default to 100
-  accessToken: process.env.STRAPI_TOKEN,
+  queryLimit: 1000, // Default to 100
+  accessToken: process.env.STRAPI_TOKEN || config.strapi.accessToken,
   debug: true, // Enable verbose logs for debugging
 };
 
