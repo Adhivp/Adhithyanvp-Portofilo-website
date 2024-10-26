@@ -1,0 +1,84 @@
+{
+  "name": "v4",
+  "description": "Personal Website V4",
+  "version": "1.0.0",
+  "author": "Brittany Chiang <brittany.chiang@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bchiang7/v4"
+  },
+  "keywords": [
+    "gatsby"
+  ],
+  "license": "MIT",
+  "browserslist": "> 0.25%, not dead",
+  "scripts": {
+    "build": "gatsby build",
+    "develop": "gatsby develop",
+    "format": "prettier --write \"**/*.{js,jsx,json,md}\"",
+    "start": "npm run develop",
+    "serve": "gatsby serve",
+    "clean": "gatsby clean",
+    "prepare": "husky install",
+    "lint-staged": "lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,css,json,md}": [
+      "prettier --write"
+    ],
+    "*.js": [
+      "eslint --fix"
+    ]
+  },
+  "dependencies": {
+    "animejs": "^3.2.2",
+    "babel-plugin-styled-components": "^2.1.4",
+    "download": "^8.0.0",
+    "gatsby": "^5.13.7",
+    "gatsby-plugin-google-analytics": "^5.13.1",
+    "gatsby-plugin-image": "^3.13.1",
+    "gatsby-plugin-manifest": "^5.13.1",
+    "gatsby-plugin-netlify": "^5.1.1",
+    "gatsby-plugin-offline": "^6.13.3",
+    "gatsby-plugin-react-helmet": "^6.13.1",
+    "gatsby-plugin-robots-txt": "^1.8.0",
+    "gatsby-plugin-sharp": "^5.13.1",
+    "gatsby-plugin-sitemap": "^6.13.1",
+    "gatsby-plugin-styled-components": "^6.13.1",
+    "gatsby-remark-external-links": "0.0.4",
+    "gatsby-remark-images": "^7.13.2",
+    "gatsby-remark-prismjs": "^7.13.2",
+    "gatsby-source-filesystem": "^5.13.1",
+    "gatsby-source-strapi": "^4.0.1",
+    "gatsby-transformer-remark": "^6.13.1",
+    "gatsby-transformer-sharp": "^5.13.1",
+    "lodash": "^4.17.21",
+    "node-fetch": "2",
+    "prismjs": "^1.29.0",
+    "prop-types": "^15.8.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-helmet": "^6.1.0",
+    "react-markdown": "^9.0.1",
+    "react-paginate": "^8.2.0",
+    "react-transition-group": "^4.4.5",
+    "scrollreveal": "^4.0.9",
+    "styled-components": "^6.1.13"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.8",
+    "@babel/eslint-parser": "^7.25.8",
+    "@babel/preset-react": "^7.25.7",
+    "@upstatement/eslint-config": "^3.0.0",
+    "@upstatement/prettier-config": "^1.1.0",
+    "babel-preset-gatsby": "^3.13.2",
+    "eslint": "^9.13.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-react": "^7.37.1",
+    "gatsby-remark-code-titles": "^1.1.0",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3"
+  }
+}
