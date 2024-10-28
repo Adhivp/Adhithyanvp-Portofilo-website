@@ -20,7 +20,7 @@ const StyledTableContainer = styled.div`
   }
 
   .image-column {
-    width: 50px; /* Adjust size as needed */
+    width: 50px;
     height: 50px;
     overflow: hidden;
   }
@@ -49,16 +49,11 @@ const StyledTableContainer = styled.div`
 
     tbody tr {
       position: relative;
-      cursor: pointer; /* Indicate clickable rows */
+      cursor: pointer;
 
       &:hover,
       &:focus {
         background-color: var(--light-navy);
-      }
-
-      &:hover .popup,
-      &:focus .popup {
-        display: block;
       }
     }
 
@@ -104,6 +99,8 @@ const StyledTableContainer = styled.div`
     td {
       &.year {
         padding-right: 20px;
+        color: var(--green);
+        font-weight: bold;
 
         @media (max-width: 768px) {
           padding-right: 10px;
@@ -118,11 +115,6 @@ const StyledTableContainer = styled.div`
         font-size: var(--fz-xl);
         font-weight: 600;
         line-height: 1.25;
-
-        a {
-          ${({ theme }) => theme.mixins.inlineLink};
-          color: var(--green);
-        }
       }
 
       &.company {
@@ -137,10 +129,12 @@ const StyledTableContainer = styled.div`
 
         .separator {
           margin: 0 5px;
+          color: var(--green); /* Set separator color to green */
+          display: inline; /* Ensure the separator is displayed inline */
         }
 
         span {
-          display: inline-block;
+          display: inline; /* Change to inline to ensure proper spacing */
         }
       }
 
@@ -154,22 +148,12 @@ const StyledTableContainer = styled.div`
           a {
             ${({ theme }) => theme.mixins.flexCenter};
             flex-shrink: 0;
+            margin-right: 10px; /* Add spacing between icons */
           }
 
-          a + a {
-            margin-left: 10px;
+          a:last-child {
+            margin-right: 0;
           }
-        }
-      }
-
-      &.image-column {
-        /* Ensure the image fits well within the cell */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-
-        img.thumbnail {
-          border-radius: var(--border-radius);
         }
       }
     }
@@ -179,24 +163,25 @@ const StyledTableContainer = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
 
     span {
-      font-size: 0.9rem;
-      color: var(--slate);
+      font-size: 1rem;
+      color: var(--light-slate);
     }
 
     label {
       display: flex;
       align-items: center;
-      font-size: 0.9rem;
-      color: var(--slate);
+      font-size: 1rem;
 
       select {
-        margin-left: 5px;
+        margin-left: 10px;
         padding: 5px;
         border-radius: 4px;
-        border: 1px solid #ccc;
+        border: 1px solid var(--light-slate);
+        background-color: var(--background-dark);
+        color: var(--light-slate);
       }
     }
   }
@@ -338,11 +323,7 @@ const ArchivePage = ({ location }) => {
   const projects = data.allStrapiProject.nodes.map(project => ({
     ...project,
     description: project.description?.data?.description || '',
-    tech: Array.isArray(project.tech) 
-      ? project.tech.map(t => t.strapi_json_value)
-      : project.tech?.strapi_json_value 
-        ? [project.tech.strapi_json_value]
-        : []
+    tech: project.tech?.strapi_json_value || [],
   }));
 
   const revealTitle = useRef(null);
@@ -353,19 +334,15 @@ const ArchivePage = ({ location }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [popupImageUrl, setPopupImageUrl] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
   const [selectedProject, setSelectedProject] = useState(null);
   const [isImagePopupOpen, setIsImagePopupOpen] = useState(false);
   const [imagePopupUrl, setImagePopupUrl] = useState('');
 
-  const handleImageClick = (url, isModal = false) => {
-    if (isModal) {
-      setImagePopupUrl(url);
-      setIsImagePopupOpen(true);
-    } else {
-      setPopupImageUrl(url);
-      setIsPopupOpen(true);
-    }
+  const handleImageClick = (url) => {
+    setImagePopupUrl(url);
+    setIsImagePopupOpen(true);
+    setIsPopupOpen(true);
   };
 
   const handleCloseImagePopup = () => {
@@ -408,7 +385,7 @@ const ArchivePage = ({ location }) => {
 
   return (
     <Layout location={location}>
-      <Helmet title="Archive" />
+      <Helmet title="Project Archive" />
 
       <main>
         <header ref={revealTitle}>
@@ -435,12 +412,12 @@ const ArchivePage = ({ location }) => {
           <table>
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Title</th>
+                <th className="year">Date</th>
+                <th className="title">Title</th>
                 <th className="hide-on-mobile">Made at</th>
                 <th className="hide-on-mobile">Built with</th>
-                <th>Image</th>
-                <th>Link</th>
+                <th className="hide-on-mobile">Image</th>
+                <th className="links">Link</th>
               </tr>
             </thead>
             <tbody>
@@ -457,35 +434,35 @@ const ArchivePage = ({ location }) => {
                     cover,
                   } = project;
 
-                  const imageUrl = cover?.localFile?.childImageSharp?.gatsbyImageData
+                  const image = cover?.localFile?.childImageSharp?.gatsbyImageData
                     ? getImage(cover.localFile.childImageSharp.gatsbyImageData)
                     : null;
 
                   return (
-                    <tr key={i} onClick={() => handleRowClick(project)}>
-                      <td>{`${new Date(date).getFullYear()} ${new Date(date).toLocaleString('default', { month: 'long' })}`}</td>
-                      <td>{title}</td>
-                      <td className="hide-on-mobile">
+                    <tr key={project.id} onClick={() => handleRowClick(project)} ref={el => (revealProjects.current[i] = el)}>
+                      <td className="year">{`${new Date(date).getFullYear()} ${new Date(date).toLocaleString('default', { month: 'long' })}`}</td>
+                      <td className="title">{title}</td>
+                      <td className="company hide-on-mobile">
                         {placeBuiltFor ? <span>{placeBuiltFor}</span> : <span>—</span>}
                       </td>
-                      <td className="hide-on-mobile">
-                        {tech?.length > 0 &&
+                      <td className="tech hide-on-mobile">
+                        {tech && tech.length > 0 && 
                           tech.map((item, idx) => (
                             <span key={idx}>
                               {item}
-                              {idx !== tech.length - 1 && <span className="separator">&middot;</span>}
+                              {idx !== tech.length - 1 && <span className="separator"> · </span>}
                             </span>
                           ))}
                       </td>
-                      <td className="image-column">
-                        {imageUrl && (
+                      <td className="image-column hide-on-mobile">
+                        {image && (
                           <GatsbyImage
-                            image={imageUrl}
+                            image={image}
                             alt={title}
                             className="thumbnail"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleImageClick(cover.url, true);
+                              handleImageClick(cover.url);
                             }}
                           />
                         )}
@@ -547,7 +524,7 @@ const ArchivePage = ({ location }) => {
             <StyledProjectInfo>
               <p><strong>Date:</strong> {`${new Date(selectedProject.date).getFullYear()} ${new Date(selectedProject.date).toLocaleString('default', { month: 'long' })}`}</p>
               <p><strong>Made at:</strong> {selectedProject.placeBuiltFor || '—'}</p>
-              <p><strong>Built with:</strong> {selectedProject.tech.join(', ')}</p>
+              <p><strong>Built with:</strong> {selectedProject.tech?.join(' · ') || '—'}</p>
             </StyledProjectInfo>
 
             <StyledProjectDescription>
@@ -561,15 +538,30 @@ const ArchivePage = ({ location }) => {
                   image={getImage(selectedProject.cover.localFile.childImageSharp.gatsbyImageData)}
                   alt={selectedProject.title}
                   style={{ width: '200px', cursor: 'pointer' }}
-                  onClick={() => handleImageClick(selectedProject.cover.url, true)}
+                  onClick={() => handleImageClick(selectedProject.cover.url)}
                 />
               </div>
             )}
           </div>
         </Modal>
       )}
+
+      {isImagePopupOpen && (
+        <PopupOverlay onClick={handleCloseImagePopup}>
+          <PopupContent onClick={e => e.stopPropagation()}>
+            <button className="close-button" onClick={handleCloseImagePopup}>
+              <Icon name="Close" />
+            </button>
+            <img src={imagePopupUrl} alt="Project Image" />
+          </PopupContent>
+        </PopupOverlay>
+      )}
     </Layout>
   );
+};
+
+ArchivePage.propTypes = {
+  location: PropTypes.object.isRequired,
 };
 
 export default ArchivePage;
