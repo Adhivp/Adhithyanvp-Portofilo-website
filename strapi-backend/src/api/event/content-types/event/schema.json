@@ -1,0 +1,51 @@
+{
+  "kind": "collectionType",
+  "collectionName": "events",
+  "info": {
+    "singularName": "event",
+    "pluralName": "events",
+    "displayName": "Event",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "external": {
+      "type": "string"
+    },
+    "linkedin": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "cover": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "content": {
+      "type": "richtext"
+    },
+    "date": {
+      "type": "date"
+    },
+    "IsHackathon": {
+      "type": "boolean"
+    },
+    "devfolio": {
+      "type": "string"
+    }
+  }
+}
