@@ -42,6 +42,24 @@ const StyledProjectsSection = styled.section`
     ${({ theme }) => theme.mixins.button};
     margin: 80px auto 0;
   }
+
+  .divider {
+    width: 100%;
+    height: 1px;
+    background-color: var(--lightest-navy);
+    margin: 50px 0 30px;
+  }
+    
+  &:before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 3px;
+    width: 50px;
+    background-color: var(--green);
+    top: -1px;
+  }
 `;
 
 const StyledProject = styled.li`
@@ -80,7 +98,7 @@ const StyledProject = styled.li`
   .project-top {
     ${({ theme }) => theme.mixins.flexBetween};
     margin-bottom: 35px;
-    width: 100%; /* Ensure it takes full width */
+    width: 100%;
 
     .folder {
       color: var(--green);
@@ -93,8 +111,8 @@ const StyledProject = styled.li`
 
   .project-links {
     position: absolute;
-    top: 1.75rem; /* Adjust as needed */
-    right: 1.75rem; /* Adjust as needed */
+    top: 1.75rem;
+    right: 1.75rem;
     display: flex;
     align-items: center;
     color: var(--light-slate);
@@ -172,7 +190,10 @@ const StyledProject = styled.li`
 const Projects = () => {
   const data = useStaticQuery(graphql`
     query AllProjectsQuery {
-      allStrapiProject(filter: { showInProjects: { eq: true }, featured: { ne: true } }) {
+      allStrapiProject(
+        filter: { showInProjects: { eq: true }, featured: { ne: true } }
+        sort: {date: DESC}
+      ) {
         nodes {
           id
           title
@@ -195,6 +216,7 @@ const Projects = () => {
   const projects = data.allStrapiProject.nodes.map(project => ({
     ...project,
     description: project.description?.data?.description || '',
+    tech: project.tech?.strapi_json_value || [],
   }));
 
   const [showMore, setShowMore] = useState(false);
@@ -216,6 +238,7 @@ const Projects = () => {
   const GRID_LIMIT = 6;
   const firstSix = projects.slice(0, GRID_LIMIT);
   const projectsToShow = showMore ? projects : firstSix;
+
   const projectInner = project => {
     const { title, tech, github, external, devfolio, description } = project;
 
@@ -245,23 +268,36 @@ const Projects = () => {
               <Icon name="Folder" />
             </div>
           </div>
-
           <h3 className="project-title">
-            <a href={external.startsWith('https') ? external : `https://${external}`} target="_blank" rel="noopener noreferrer">
-              {title}
-            </a>
+            {external ? (
+              <a href={external.startsWith('https') ? external : `https://${external}`} target="_blank" rel="noopener noreferrer">
+                {title}
+              </a>
+            ) : (
+              <span>{title}</span>
+            )}
           </h3>
 
           <div className="project-description" dangerouslySetInnerHTML={{ __html: description }} />
         </header>
         <footer>
-          {tech && (
+          {tech?.strapi_json_value ? (
             <ul className="project-tech-list">
-              {tech.map((techItem, i) => (
-                <li key={i}>{techItem.strapi_json_value}</li>
+              {tech.strapi_json_value.map((techItem, i) => (
+                <li key={i}>
+                  <span>{techItem}</span>
+                </li>
               ))}
             </ul>
-          )}
+          ) : tech ? (
+            <ul className="project-tech-list">
+              {tech.map((techItem, i) => (
+                <li key={i}>
+                  <span>{techItem}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </footer>
       </div>
     );
@@ -272,7 +308,7 @@ const Projects = () => {
       <h2 ref={revealTitle}>Other Noteworthy Projects</h2>
 
       <Link className="inline-link archive-link" to="/projects-archive" ref={revealArchiveLink}>
-        view the archive
+        View Full Projects Archive
       </Link>
 
       {projects.length > 0 && (
@@ -311,6 +347,14 @@ const Projects = () => {
           Show {showMore ? 'Less' : 'More'}
         </button>
       )}
+      <div className="divider" />
+      <Link
+        className="inline-link archive-link"
+        to="/projects-archive"
+        ref={revealArchiveLink}
+      >
+        View Full Projects Archive
+      </Link>
     </StyledProjectsSection>
   );
 };

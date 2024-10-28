@@ -401,35 +401,45 @@ const Events = () => {
 
     return (
       <div className="event-inner">
-        <div className="event-image">
-          <a
-            href={
-              external.startsWith('https') ? external : `https://${external}`
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {cover?.localFile?.childImageSharp?.gatsbyImageData && (
-              <GatsbyImage
-                image={getImage(cover.localFile.childImageSharp.gatsbyImageData)}
-                alt={`${title} Image`}
-                className="img"
-              />
-            )}
-          </a>
-        </div>
+            <div className="event-image">
+              {cover?.localFile?.childImageSharp?.gatsbyImageData ? (
+                <a
+                  href={
+                    external
+                      ? external.startsWith('https')
+                        ? external
+                        : `https://${external}`
+                      : '#'
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <GatsbyImage
+                    image={getImage(cover.localFile.childImageSharp.gatsbyImageData)}
+                    alt={`${title || 'Event'} Image`}
+                    className="img"
+                  />
+                </a>
+              ) : (
+                <div className="placeholder-image">No Image Available</div>
+              )}
+            </div>
 
         <div className="event-header">
           <h3 className="event-title">
-            <a
-              href={
-                external.startsWith('https') ? external : `https://${external}`
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {title}
-            </a>
+            {external ? (
+              <a
+                href={
+                  external.startsWith('https') ? external : `https://${external}`
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {title || 'Untitled Event'}
+              </a>
+            ) : (
+              <span>{title || 'Untitled Event'}</span>
+            )}
           </h3>
           <div className="event-links">
             {linkedin && (
@@ -462,12 +472,12 @@ const Events = () => {
 
         <div
           className="event-description"
-          dangerouslySetInnerHTML={{ __html: contentString }}
+          dangerouslySetInnerHTML={{ __html: contentString || '<p>No Description Available.</p>' }}
         />
 
         <footer className="event-footer">
-          <span className="event-date">{date}</span>
-          <span className="event-location">{location}</span>
+          <span className="event-date">{date || 'Date not available'}</span>
+          <span className="event-location">{location || 'Location not available'}</span>
         </footer>
       </div>
     );
@@ -476,9 +486,11 @@ const Events = () => {
   return (
     <StyledEventsSection id="events">
       <h2 className="numbered-heading" ref={revealTitle}>
-        Latest Events I've Attended
+        Latest Events I've Attended / Conducted
       </h2>
-
+      <Link className="inline-link archive-link" to="/events-archive" ref={revealButtonArchive}>
+        View Full Events Archive
+      </Link>
       {events.length > 0 && (
         <ul className="events-grid">
           {prefersReducedMotion ? (

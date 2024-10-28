@@ -21,24 +21,25 @@ const StyledTableContainer = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
 
     span {
-      font-size: 0.9rem;
-      color: var(--slate);
+      font-size: 1rem;
+      color: var(--light-slate);
     }
 
     label {
       display: flex;
       align-items: center;
-      font-size: 0.9rem;
-      color: var(--slate);
+      font-size: 1rem;
 
       select {
-        margin-left: 5px;
+        margin-left: 10px;
         padding: 5px;
         border-radius: 4px;
-        border: 1px solid #ccc;
+        border: 1px solid var(--light-slate);
+        background-color: var(--background-dark);
+        color: var(--light-slate);
       }
     }
   }
@@ -105,6 +106,8 @@ const StyledTableContainer = styled.div`
     td {
       &.year {
         padding-right: 20px;
+        color: var(--green);
+        font-weight: bold;
 
         @media (max-width: 768px) {
           padding-right: 10px;
@@ -135,128 +138,6 @@ const StyledTableContainer = styled.div`
           object-fit: cover;
           border-radius: var(--border-radius);
         }
-      }
-
-      &.links {
-        min-width: 100px;
-
-        div {
-          display: flex;
-          align-items: center;
-
-          a {
-            ${({ theme }) => theme.mixins.flexCenter};
-            flex-shrink: 0;
-          }
-
-          a + a {
-            margin-left: 10px;
-          }
-        }
-      }
-    }
-  }
-
-  .image-column {
-    width: 50px;
-    height: 50px;
-    overflow: hidden;
-  }
-
-  .thumbnail {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    cursor: pointer;
-    transition: transform 0.3s;
-
-    &:hover {
-      transform: scale(1.1);
-    }
-  }
-`;
-
-const StyledButtonGroup = styled.div`
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-
-  button {
-    ${({ theme }) => theme.mixins.button};
-    margin: 0 10px;
-  }
-`;
-
-const PopupOverlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-`;
-
-const PopupContent = styled.div`
-  max-width: 90%;
-  max-height: 90%;
-  position: relative;
-
-  img {
-    width: 100%;
-    height: auto;
-    object-fit: contain;
-    border-radius: var(--border-radius);
-  }
-
-  .close-button {
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    background: var(--green);
-    border: none;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    cursor: pointer;
-
-    svg {
-      width: 16px;
-      height: 16px;
-      color: white;
-    }
-  }
-`;
-
-const EventHeader = styled.div`
-  margin-bottom: 20px;
-
-  h2 {
-    font-size: var(--fz-heading);
-    margin-bottom: 10px;
-  }
-
-  .title-icons {
-    display: inline-flex;
-    align-items: center;
-    margin-left: 10px;
-
-    a {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 5px;
-
-      &:hover {
-        color: var(--green);
-      }
-
-      svg {
-        width: 20px;
-        height: 20px;
       }
     }
   }
@@ -304,6 +185,8 @@ const EventsArchivePage = ({ location }) => {
           location
           linkedin
           IsHackathon
+          devfolio
+          external
           content {
             data {
               content
@@ -322,31 +205,38 @@ const EventsArchivePage = ({ location }) => {
   `);
 
   const events = data.allStrapiEvent.nodes;
-
-  const [activeSection, setActiveSection] = useState('all');
   const revealTitle = useRef(null);
-  const revealTable = useRef(null);
   const revealEvents = useRef([]);
   const prefersReducedMotion = usePrefersReducedMotion();
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [popupImageUrl, setPopupImageUrl] = useState('');
-
   const [currentPage, setCurrentPage] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [activeSection, setActiveSection] = useState('all');
 
-  const handleImageClick = (cover) => {
-    const imageUrl = cover?.localFile?.childImageSharp?.gatsbyImageData
-        ? getImage(cover.localFile.childImageSharp.gatsbyImageData)
-        : '';
-    setPopupImageUrl(imageUrl);
-    setIsPopupOpen(true);
+  const filteredEvents =
+    activeSection === 'all'
+      ? events
+      : events.filter(event => event.IsHackathon === true);
+
+  const pageCount = Math.ceil(filteredEvents.length / itemsPerPage);
+  const offset = currentPage * itemsPerPage;
+  const currentEvents = filteredEvents.slice(offset, offset + itemsPerPage);
+
+  const handlePageClick = ({ selected }) => {
+    setCurrentPage(selected);
   };
 
-  const handleCloseImagePopup = () => {
-    setIsPopupOpen(false);
-    setPopupImageUrl('');
+  const handleItemsPerPageChange = (e) => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(0);
+  };
+
+  const handleSectionChange = (section) => {
+    setActiveSection(section);
+    setCurrentPage(0);
   };
 
   const handleRowClick = (event) => {
@@ -357,33 +247,24 @@ const EventsArchivePage = ({ location }) => {
     setSelectedEvent(null);
   };
 
+  const handleImageClick = (cover) => {
+    setPopupImageUrl(cover.localFile.childImageSharp.gatsbyImageData.images.fallback.src);
+    setIsPopupOpen(true);
+  };
+
+  const handleCloseImagePopup = () => {
+    setIsPopupOpen(false);
+    setPopupImageUrl('');
+  };
+
   useEffect(() => {
     if (prefersReducedMotion) {
       return;
     }
 
     sr.reveal(revealTitle.current, srConfig());
-    sr.reveal(revealTable.current, srConfig(200, 0));
     revealEvents.current.forEach((ref, i) => sr.reveal(ref, srConfig(i * 10)));
   }, [prefersReducedMotion]);
-
-  const pageCount = Math.ceil(events.length / itemsPerPage);
-  const handlePageClick = ({ selected }) => {
-    setCurrentPage(selected);
-  };
-
-  const handleItemsPerPageChange = (e) => {
-    setItemsPerPage(Number(e.target.value));
-    setCurrentPage(0);
-  };
-
-  const filteredEvents =
-    activeSection === 'all'
-      ? events
-      : events.filter(event => event.isHackathon);
-
-  const offset = currentPage * itemsPerPage;
-  const currentEvents = filteredEvents.slice(offset, offset + itemsPerPage);
 
   return (
     <Layout location={location}>
@@ -392,15 +273,10 @@ const EventsArchivePage = ({ location }) => {
       <main>
         <header ref={revealTitle}>
           <h1 className="big-heading">Events Archive</h1>
-          <p className="subtitle">A Big list of events I've attended</p>
+          <p className="subtitle">A Big list of events I've attended and conducted</p>
         </header>
-        <br />
-        <StyledButtonGroup>
-          <button onClick={() => setActiveSection('all')}>All Events ({events.length})</button>
-          <button onClick={() => setActiveSection('hackathons')}>Hackathons ({events.filter(event => event.isHackathon).length})</button>
-        </StyledButtonGroup>
 
-        <StyledTableContainer ref={revealTable} isBlurred={isPopupOpen}>
+        <StyledTableContainer>
           <div className="pagination-controls">
             <span>
               Showing {offset + 1} - {Math.min(offset + itemsPerPage, filteredEvents.length)} of {filteredEvents.length}
@@ -430,7 +306,7 @@ const EventsArchivePage = ({ location }) => {
             <tbody>
               {currentEvents.length > 0 &&
                 currentEvents.map((event, i) => {
-                  const { title, date, location, linkedin, cover } = event;
+                  const { title, date, location, linkedin, devfolio, external, cover } = event;
 
                   return (
                     <tr key={i} ref={el => (revealEvents.current[i] = el)} onClick={() => handleRowClick(event)}>
@@ -439,7 +315,7 @@ const EventsArchivePage = ({ location }) => {
                       <td className="location hide-on-mobile">
                         {location ? <span>{location}</span> : <span>—</span>}
                       </td>
-                      <td className="image-column">
+                      <td className="image-column hide-on-mobile">
                         {cover?.localFile?.childImageSharp?.gatsbyImageData && (
                           <GatsbyImage
                             image={getImage(cover.localFile.childImageSharp.gatsbyImageData)}
@@ -454,9 +330,19 @@ const EventsArchivePage = ({ location }) => {
                       </td>
                       <td className="links">
                         <div>
+                          {external && (
+                            <a href={external} aria-label="External Link" target="_blank" rel="noopener noreferrer">
+                              <Icon name="External" />
+                            </a>
+                          )}
                           {linkedin && (
                             <a href={linkedin} aria-label="LinkedIn Link" target="_blank" rel="noopener noreferrer">
-                              <Icon name="LinkedIn" />
+                              <Icon name="Linkedin" />
+                            </a>
+                          )}
+                          {devfolio && (
+                            <a href={devfolio} aria-label="Devfolio Link" target="_blank" rel="noopener noreferrer">
+                              <Icon name="Devfolio" />
                             </a>
                           )}
                         </div>
@@ -478,9 +364,19 @@ const EventsArchivePage = ({ location }) => {
               <h2>
                 {selectedEvent.title}
                 <span className="title-icons">
+                  {selectedEvent.external && (
+                    <a href={selectedEvent.external} target="_blank" rel="noopener noreferrer" aria-label="External Link">
+                      <Icon name="External" />
+                    </a>
+                  )}
                   {selectedEvent.linkedin && (
                     <a href={selectedEvent.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn Link">
-                      <Icon name="LinkedIn" />
+                      <Icon name="Linkedin" />
+                    </a>
+                  )}
+                  {selectedEvent.devfolio && (
+                    <a href={selectedEvent.devfolio} target="_blank" rel="noopener noreferrer" aria-label="Devfolio Link">
+                      <Icon name="Devfolio" />
                     </a>
                   )}
                 </span>
@@ -490,7 +386,7 @@ const EventsArchivePage = ({ location }) => {
             <StyledEventInfo>
               <p><strong>Date:</strong> {new Date(selectedEvent.date).toLocaleDateString()}</p>
               <p><strong>Location:</strong> {selectedEvent.location || '—'}</p>
-              {selectedEvent.isHackathon && (
+              {selectedEvent.IsHackathon === true && (
                 <p className="hackathon-label">
                   Hackathon
                   <Icon name="Tick" className="tick-icon" />
