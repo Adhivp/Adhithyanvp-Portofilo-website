@@ -139,6 +139,144 @@ const StyledTableContainer = styled.div`
           border-radius: var(--border-radius);
         }
       }
+
+      &.links {
+        min-width: 100px;
+
+        div {
+          display: flex;
+          align-items: center;
+
+          a {
+            ${({ theme }) => theme.mixins.flexCenter};
+            flex-shrink: 0;
+          }
+
+          a + a {
+            margin-left: 10px;
+          }
+        }
+      }
+    }
+  }
+
+  .image-column {
+    width: 50px;
+    height: 50px;
+    overflow: hidden;
+  }
+
+  .thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.3s;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+  }
+`;
+
+const StyledButtonGroup = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+
+  button {
+    ${({ theme }) => theme.mixins.button};
+    margin: 0 10px;
+
+    &.active {
+      color: var(--green);  // Change text color to green instead of background
+      border-color: var(--green);  // Optional: also change border color
+    }
+
+    &:hover,
+    &:focus {
+      color: var(--green);
+    }
+  }
+`;
+
+const PopupOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+`;
+
+const PopupContent = styled.div`
+  max-width: 90%;
+  max-height: 90%;
+  position: relative;
+
+  img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    border-radius: var(--border-radius);
+  }
+
+  .close-button {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: var(--green);
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+
+    svg {
+      width: 16px;
+      height: 16px;
+      color: white;
+    }
+  }
+`;
+
+const EventHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+
+  h2 {
+    margin: 0;
+    font-size: 2.5rem;
+    display: flex;
+    align-items: center;
+    color: var(--slate);
+  }
+
+  .title-icons {
+    display: flex;
+    gap: 10px;
+    margin-left: 15px;
+
+    a {
+      text-decoration: none;
+
+      svg {
+        width: 20px;
+        height: 20px;
+        color: white;
+        cursor: pointer;
+        transition: transform 0.2s, color 0.2s;
+
+        &:hover {
+          color: var(--green);
+        }
+      }
     }
   }
 `;
@@ -205,22 +343,58 @@ const EventsArchivePage = ({ location }) => {
   `);
 
   const events = data.allStrapiEvent.nodes;
+
+  const [activeSection, setActiveSection] = useState('all');
   const revealTitle = useRef(null);
+  const revealTable = useRef(null);
   const revealEvents = useRef([]);
   const prefersReducedMotion = usePrefersReducedMotion();
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [popupImageUrl, setPopupImageUrl] = useState('');
+
   const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [activeSection, setActiveSection] = useState('all');
 
+  const handleImageClick = (cover) => {
+    const imageUrl = cover?.localFile?.childImageSharp?.gatsbyImageData
+        ? getImage(cover.localFile.childImageSharp.gatsbyImageData)
+        : '';
+    setPopupImageUrl(imageUrl);
+    setIsPopupOpen(true);
+  };
+
+  const handleCloseImagePopup = () => {
+    setIsPopupOpen(false);
+    setPopupImageUrl('');
+  };
+
+  const handleRowClick = (event) => {
+    setSelectedEvent(event);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedEvent(null);
+  };
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      return;
+    }
+
+    sr.reveal(revealTitle.current, srConfig());
+    sr.reveal(revealTable.current, srConfig(200, 0));
+    revealEvents.current.forEach((ref, i) => sr.reveal(ref, srConfig(i * 10)));
+  }, [prefersReducedMotion]);
+
+  // First, define filteredEvents
   const filteredEvents =
     activeSection === 'all'
       ? events
       : events.filter(event => event.IsHackathon === true);
 
+  // Then use filteredEvents in subsequent calculations
   const pageCount = Math.ceil(filteredEvents.length / itemsPerPage);
   const offset = currentPage * itemsPerPage;
   const currentEvents = filteredEvents.slice(offset, offset + itemsPerPage);
@@ -236,35 +410,8 @@ const EventsArchivePage = ({ location }) => {
 
   const handleSectionChange = (section) => {
     setActiveSection(section);
-    setCurrentPage(0);
+    setCurrentPage(0); // Reset to first page when switching sections
   };
-
-  const handleRowClick = (event) => {
-    setSelectedEvent(event);
-  };
-
-  const handleCloseModal = () => {
-    setSelectedEvent(null);
-  };
-
-  const handleImageClick = (cover) => {
-    setPopupImageUrl(cover.localFile.childImageSharp.gatsbyImageData.images.fallback.src);
-    setIsPopupOpen(true);
-  };
-
-  const handleCloseImagePopup = () => {
-    setIsPopupOpen(false);
-    setPopupImageUrl('');
-  };
-
-  useEffect(() => {
-    if (prefersReducedMotion) {
-      return;
-    }
-
-    sr.reveal(revealTitle.current, srConfig());
-    revealEvents.current.forEach((ref, i) => sr.reveal(ref, srConfig(i * 10)));
-  }, [prefersReducedMotion]);
 
   return (
     <Layout location={location}>
@@ -275,8 +422,23 @@ const EventsArchivePage = ({ location }) => {
           <h1 className="big-heading">Events Archive</h1>
           <p className="subtitle">A Big list of events I've attended and conducted</p>
         </header>
+        <br />
+        <StyledButtonGroup>
+          <button 
+            onClick={() => handleSectionChange('all')}
+            className={activeSection === 'all' ? 'active' : ''}
+          >
+            All Events ({events.length})
+          </button>
+          <button 
+            onClick={() => handleSectionChange('hackathons')}
+            className={activeSection === 'hackathons' ? 'active' : ''}
+          >
+            Hackathons ({events.filter(event => event.IsHackathon === true).length})
+          </button>
+        </StyledButtonGroup>
 
-        <StyledTableContainer>
+        <StyledTableContainer ref={revealTable} isBlurred={isPopupOpen}>
           <div className="pagination-controls">
             <span>
               Showing {offset + 1} - {Math.min(offset + itemsPerPage, filteredEvents.length)} of {filteredEvents.length}
@@ -386,12 +548,6 @@ const EventsArchivePage = ({ location }) => {
             <StyledEventInfo>
               <p><strong>Date:</strong> {new Date(selectedEvent.date).toLocaleDateString()}</p>
               <p><strong>Location:</strong> {selectedEvent.location || '—'}</p>
-              {selectedEvent.IsHackathon === true && (
-                <p className="hackathon-label">
-                  Hackathon
-                  <Icon name="Tick" className="tick-icon" />
-                </p>
-              )}
             </StyledEventInfo>
 
             <StyledEventDescription>
