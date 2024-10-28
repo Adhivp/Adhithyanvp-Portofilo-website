@@ -114,6 +114,9 @@ module.exports = {
             resolve: 'gatsby-remark-code-titles',
           }, // IMPORTANT: this must be ahead of other plugins that use code blocks
           {
+            resolve: "@vercel/speed-insights/gatsby-plugin"
+          },
+          {
             // https://www.gatsbyjs.org/packages/gatsby-remark-prismjs
             resolve: `gatsby-remark-prismjs`,
             options: {

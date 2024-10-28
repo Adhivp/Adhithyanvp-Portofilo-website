@@ -1,0 +1,21 @@
+{
+  "kind": "singleType",
+  "collectionName": "abouts",
+  "info": {
+    "singularName": "about",
+    "pluralName": "abouts",
+    "displayName": "About"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "about_content": {
+      "type": "richtext"
+    },
+    "main_skills": {
+      "type": "json"
+    }
+  }
+}

@@ -11,4 +11,3 @@ package-lock.json
 .vscode/
 yarn.lock
 .env
-/strapi-backend
