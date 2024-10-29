@@ -248,18 +248,60 @@ const Jobs = () => {
           {jobsData &&
             jobsData.map((job, i) => {
               const { company } = job;
+              const [displayCompany, setDisplayCompany] = useState(company);
+              const tabRef = useRef(null);
+
+              useEffect(() => {
+                const handleResize = () => {
+                  if (!tabRef.current) return;
+                  
+                  const containerWidth = tabRef.current.offsetWidth;
+                  const textElement = tabRef.current.querySelector('span');
+                  if (!textElement) return;
+
+                  textElement.style.width = 'auto';
+                  const fullWidth = textElement.scrollWidth;
+
+                  if (fullWidth > containerWidth) {
+                    const charWidth = fullWidth / company.length;
+                    const possibleChars = Math.floor((containerWidth - 20) / charWidth);
+                    const truncated = company.slice(0, Math.max(possibleChars, 3)) + (possibleChars < company.length ? '...' : '');
+                    setDisplayCompany(truncated);
+                  } else {
+                    setDisplayCompany(company);
+                  }
+                };
+
+                window.addEventListener('resize', handleResize);
+                handleResize();
+
+                return () => window.removeEventListener('resize', handleResize);
+              }, [company]);
+
               return (
                 <StyledTabButton
                   key={job.id}
                   isActive={activeTabId === i}
                   onClick={() => setActiveTabId(i)}
-                  ref={el => (tabs.current[i] = el)}
+                  ref={el => {
+                    tabs.current[i] = el;
+                    tabRef.current = el;
+                  }}
                   id={`tab-${i}`}
                   role="tab"
                   tabIndex={activeTabId === i ? '0' : '-1'}
                   aria-selected={activeTabId === i ? true : false}
-                  aria-controls={`panel-${i}`}>
-                  <span>{company}</span>
+                  aria-controls={`panel-${i}`}
+                  title={company}>
+                  <span style={{
+                    display: 'inline-block',
+                    maxWidth: '100%',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {displayCompany}
+                  </span>
                 </StyledTabButton>
               );
             })}
