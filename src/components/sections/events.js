@@ -35,6 +35,10 @@ const StyledEventsSection = styled.section`
 
     @media (max-width: 768px) {
       grid-template-columns: 1fr;
+
+      .img {
+        opacity: 1 !important;
+      }
     }
   }
 
@@ -70,7 +74,7 @@ const StyledEventsSection = styled.section`
     @media (max-width: 768px) {
       grid-column: 1 / -1;
       height: 100%;
-      opacity: 0.25;
+      opacity: 1;
     }
 
     a {
@@ -207,6 +211,10 @@ const StyledEvent = styled.li`
         mix-blend-mode: screen;
         transition: var(--transition);
         z-index: 2;
+
+        @media (max-width: 768px) {
+          display: none;
+        }
       }
 
       &:hover:before,
@@ -221,6 +229,11 @@ const StyledEvent = styled.li`
         transition: var(--transition);
         mix-blend-mode: multiply;
         filter: grayscale(100%) contrast(1) brightness(90%);
+
+        @media (max-width: 768px) {
+          mix-blend-mode: normal;
+          filter: none;
+        }
       }
     }
   }
@@ -485,9 +498,10 @@ const Events = () => {
 
   return (
     <StyledEventsSection id="events">
-      <h2 className="numbered-heading" ref={revealTitle}>
-        Latest Events I've Attended / Conducted
-      </h2>
+          <h2 className="numbered-heading" ref={revealTitle}>
+            Latest Events I've Attended/<br />
+            Conducted
+          </h2>
       <Link className="inline-link archive-link" to="/events-archive" ref={revealButtonArchive}>
         View Full Events Archive
       </Link>
