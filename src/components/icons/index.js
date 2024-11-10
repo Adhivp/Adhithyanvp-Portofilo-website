@@ -17,3 +17,4 @@ export { default as IconX } from './X';
 export { default as IconMedium } from './medium';
 export { default as IconDevfolio } from './devfolio';
 export { default as IconTick } from './tick';
+export { default as IconMinimize } from './minimize';
