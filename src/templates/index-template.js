@@ -11,7 +11,7 @@ import {
   Contact,
   Events,
 } from '@components';
-import AdhibotPopup from '@components/AdhibotPopup';
+import AdhibotPopup from '@components/AdhiBotPopup';
 
 const StyledMainContainer = styled.main`
   counter-reset: section;
