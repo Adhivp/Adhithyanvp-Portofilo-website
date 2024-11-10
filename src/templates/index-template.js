@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import {
@@ -11,12 +11,23 @@ import {
   Contact,
   Events,
 } from '@components';
+import AdhibotPopup from '../components/AdhibotPopup';
 
 const StyledMainContainer = styled.main`
   counter-reset: section;
 `;
 
 const IndexPage = ({ location }) => {
+  const [showChatPopup, setShowChatPopup] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowChatPopup(true);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   console.log('Debug: Location:', location);
 
   return (
@@ -29,6 +40,7 @@ const IndexPage = ({ location }) => {
         <Projects />
         <Events />
         <Contact />
+        <AdhibotPopup show={showChatPopup} onClose={() => setShowChatPopup(false)} />
       </StyledMainContainer>
     </Layout>
   );

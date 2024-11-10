@@ -17,7 +17,8 @@ import {
   IconX,
   IconMedium,
   IconDevfolio,
-  IconTick
+  IconTick,
+  IconMinimize
 } from '@components/icons';
 
 const Icon = ({ name }) => {
@@ -56,6 +57,8 @@ const Icon = ({ name }) => {
       return <IconDevfolio />;
     case 'Tick':
       return <IconTick />;
+    case 'Minimize':
+      return <IconMinimize />;
     default:
       return <IconExternal />;
   }
