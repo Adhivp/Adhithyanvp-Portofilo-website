@@ -42,9 +42,16 @@ const strapiConfig = {
       },
     }
   ],
-  queryLimit: 1000, // Default to 100
+  queryLimit: 1000,
   accessToken: process.env.STRAPI_TOKEN || config.strapi.accessToken,
-  debug: true, // Enable verbose logs for debugging
+  debug: true,
+  fetchOptions: {
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    },
+  },
 };
 
 module.exports = {
@@ -76,7 +83,12 @@ module.exports = {
         icon: 'src/images/logo.png',
       },
     },
-    `gatsby-plugin-offline`,
+    {
+      resolve: `gatsby-plugin-offline`,
+      options: {
+        precachePages: [],
+      },
+    },
     {
       resolve: `gatsby-source-filesystem`,
       options: {
