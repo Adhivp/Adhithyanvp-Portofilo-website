@@ -1,14 +1,19 @@
 {
-    "headers": [
-      {
-        "source": "/(.*)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-store, no-cache, must-revalidate, proxy-revalidate"
-          }
-        ]
-      }
-    ]
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, proxy-revalidate"
+        }
+      ]
+    }
+  ],
+  "build": {
+    "env": {
+      "SHARP_DIST_BASE_URL": "https://github.com/lovell/sharp-libvips/releases/download/v8.14.5/",
+      "SHARP_IGNORE_GLOBAL_LIBVIPS": "1"
+    }
   }
-  
+}
