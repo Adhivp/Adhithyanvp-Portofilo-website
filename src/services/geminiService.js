@@ -8,7 +8,8 @@ export const getChatResponse = async (prompt, context) => {
       throw new Error('GATSBY_GEMINI_API_KEY is not defined');
     }
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-preview-04-17' });
+    const modelName = process.env.GATSBY_GEMINI_MODEL ;
+    const model = genAI.getGenerativeModel({ model: modelName });
     
     // Format the chat history properly
     const chatHistory = [{
@@ -60,4 +61,4 @@ export const getChatResponse = async (prompt, context) => {
     // Re-throw a generic error for other cases
     throw new Error('Failed to get response from Gemini API');
   }
-}; 
+};
