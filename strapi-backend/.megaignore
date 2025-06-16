@@ -1,35 +1,28 @@
 # .megaignore file for syncing rules across devices
-
 # Sync control for this .megaignore file (default is to not sync)
-+sync:.megaignore
-
+#+sync:.megaignore
 # Node.js dependencies and cache
 -d:node_modules/
 -f:npm-debug.log
 -f:yarn-error.log
-
 # Python cache files and folders
 -d:__pycache__/
 -f:*.py[cod]
 -d:.pytest_cache/
 -d:.mypy_cache/
-
 # ESLint and Prettier
 -f:.eslintcache
 -f:eslint-debug.log
 -f:.prettierignore
-
 # Visual Studio Code settings
 -d:.vscode/
 -f:*.code-workspace
-
 # IDE-specific settings (IntelliJ, Sublime Text, etc.)
 -d:.idea/
 -f:*.sublime-workspace
 -f:*.sublime-project
-
 # System-specific files
 -f:.DS_Store        # macOS
 -f:Thumbs.db        # Windows
 -f:ehthumbs.db      # Windows
-
+-s:*
