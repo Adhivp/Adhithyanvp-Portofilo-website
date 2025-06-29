@@ -43,7 +43,7 @@ const StyledEventsSection = styled.section`
   }
 
   .more-button {
-    ${({ theme }) => theme.mixins.button};
+    ${({ theme }) => theme.mixins.bigButton}; // <-- Use bigButton mixin
     margin: 80px auto 0;
   }
 
