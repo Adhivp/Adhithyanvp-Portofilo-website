@@ -81,24 +81,27 @@ const StyledPopup = styled.div`
     width: ${props => (props.isMinimized ? 'auto' : 'auto')};
 
     button {
-      background: none;
-      border: none;
-      color: var(--slate);
-      cursor: pointer;
-      padding: 0.25rem;
+      // Set button size when minimized
+      width: ${props => (props.isMinimized ? '56px' : '32px')};
+      height: ${props => (props.isMinimized ? '56px' : '32px')};
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: color 0.3s ease;
+      padding: 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: width 0.3s, height 0.3s;
+      color: var(--green); // <-- Add this line
+      font-size: 2rem; // For the × icon
+    }
 
-      &:hover {
-        color: var(--green);
-      }
-
-      svg {
-        width: 20px;
-        height: 20px;
-      }
+    svg {
+      width: ${props => (props.isMinimized ? '25px' : '25px')};
+      height: ${props => (props.isMinimized ? '25px' : '25px')};
+      transition: width 0.3s, height 0.3s;
+      display: block;
+      color: var(--green); 
     }
   }
 
