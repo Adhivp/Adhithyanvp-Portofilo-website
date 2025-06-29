@@ -29,7 +29,9 @@ const StyledPopup = styled.div`
     gap: 1rem;
     opacity: 1;
     height: auto;
-    overflow: hidden;
+    overflow: visible;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
     transition: all 0.3s ease;
   }
 
@@ -54,15 +56,17 @@ const StyledPopup = styled.div`
     position: relative;
     color: var(--green);
     z-index: 1;
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    margin-left: -0.25rem; // <-- Pull button slightly left
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s, z-index 0.3s, box-shadow 0.3s, margin 0.3s;
 
     &:hover {
       background-color: var(--green);
       color: var(--light-navy);
       border-color: var(--green);
       outline: none;
-      box-shadow: none;
-      z-index: 2;
+      box-shadow: 0 4px 16px 0 rgba(0,0,0,0.15);
+      z-index: 10;
+      margin-left: -0.5rem; // <-- Pull button further left on hover
     }
 
     &::before,
@@ -114,6 +118,8 @@ const StyledPopup = styled.div`
     margin: 0 auto;
     color: var(--green);
   }
+
+  overflow: visible;
 `;
 
 const AdhibotPopup = ({ show, onClose }) => {
