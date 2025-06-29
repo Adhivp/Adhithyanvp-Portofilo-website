@@ -1,6 +1,6 @@
 import React from 'react';
 
-const IconBot = () => (
+const IconBot = ({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
@@ -9,8 +9,9 @@ const IconBot = () => (
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
-    width="20"
-    height="20">
+    className={className}
+    width="100%"
+    height="100%">
     <title>Bot</title>
     <rect x="3" y="11" width="18" height="10" rx="2" />
     <circle cx="12" cy="5" r="2" />
@@ -27,4 +28,4 @@ const IconBot = () => (
   </svg>
 );
 
-export default IconBot; 
+export default IconBot;
