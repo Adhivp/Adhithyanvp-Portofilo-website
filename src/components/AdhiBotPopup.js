@@ -48,31 +48,12 @@ const StyledPopup = styled.div`
   }
 
   .chat-button {
-    ${({ theme }) => theme.mixins.smallButton};
-    width: fit-content;
-    border: 2px solid var(--green);
-    border-radius: 4px;
-    padding: 0.75rem 1rem;
-    position: relative;
-    color: var(--green);
-    z-index: 1;
-    margin-left: -0.25rem; // <-- Pull button slightly left
-    transition: background-color 0.3s, color 0.3s, border-color 0.3s, z-index 0.3s, box-shadow 0.3s, margin 0.3s;
-
-    &:hover {
-      background-color: var(--green);
-      color: var(--light-navy);
-      border-color: var(--green);
-      outline: none;
-      box-shadow: 0 4px 16px 0 rgba(0,0,0,0.15);
-      z-index: 10;
-      margin-left: -0.5rem; // <-- Pull button further left on hover
-    }
-
-    &::before,
-    &::after {
-      display: none;
-    }
+    ${({ theme }) => theme.mixins.bigButton};
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
   }
 
   .control-buttons {
