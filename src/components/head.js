@@ -43,7 +43,6 @@ const Head = ({ title, description, image }) => {
   return (
     <Helmet title={title} defaultTitle={seo.title} titleTemplate={`%s | ${defaultTitle}`}>
       <html lang="en" />
-
       <meta name="description" content={seo.description} />
       <meta name="image" content={seo.image} />
 
@@ -60,6 +59,7 @@ const Head = ({ title, description, image }) => {
       <meta name="X:image" content={seo.image} />
 
       <meta name="google-site-verification" content="DCl7VAf9tcz6eD9gb67NfkNnJ1PKRNcg8qQiwpbx9Lk" />
+      <link rel="canonical" href={seo.url} />
     </Helmet>
   );
 };

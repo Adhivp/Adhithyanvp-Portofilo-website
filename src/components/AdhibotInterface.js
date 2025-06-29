@@ -30,8 +30,8 @@ const StyledChatHeader = styled.div`
     gap: 8px;
 
     svg {
-      width: 24px;
-      height: 24px;
+      width: 30px;
+      height: 30px;
     }
   }
 `;

@@ -1,5 +1,8 @@
-const config = require('./src/config');
 require("dotenv").config();
+const config = require('./src/config');
+
+const siteUrl = process.env.SITE_URL
+
 const strapiConfig = {
   apiURL: process.env.STRAPI_API_URL || config.strapi.apiURL,
   collectionTypes: [
@@ -59,7 +62,7 @@ module.exports = {
     title: 'Adhithyan VP',
     description:
       'Adhithyan VP is an AI engineer and software engineer who builds intelligent web apps with AI and data, focusing on crafting intuitive, AI-powered products that solve real-world problems.',
-    siteUrl: 'https://adhithyanvp.tech/', // No trailing slash allowed!
+    siteUrl, // Use env variable here
     image: '/og.png', // Path to your image you placed in the 'static' folder
     XUsername: '@Adhivp3',
   },

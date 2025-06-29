@@ -66,15 +66,15 @@ ${globalData.jobs.map(job => `
 ### Projects:
 ${globalData.projects.map(project => `
 - **${project.title}**
-  ${project.description.data.description}
-  **Technologies:** ${project.tech.strapi_json_value.join(', ')}
+  ${project.description?.data?.description || 'No description available'}
+  **Technologies:** ${project.tech?.strapi_json_value?.join(', ') || 'No technologies listed'}
 `).join('\n')}
 
 ### Events:
 ${globalData.events.map(event => `
 - **${event.title}** (${event.date})
   **Location:** ${event.location}
-  ${event.content.data.content}
+  ${event.content?.data?.content || 'No content available'}
 `).join('\n')}
     `;
 
