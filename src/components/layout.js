@@ -5,6 +5,8 @@ import { Helmet } from 'react-helmet';
 import { Head, Loader, Nav, Social, Email, Footer } from '@components';
 import { GlobalStyle, theme } from '@styles';
 import { BotProvider } from '../context/BotContext';
+import { inject } from '@vercel/analytics';
+import { injectSpeedInsights } from '@vercel/speed-insights';
 
 const StyledContent = styled.div`
   display: flex;
@@ -47,6 +49,12 @@ const Layout = ({ children, location = {} }) => {
 
     handleExternalLinks();
   }, [isLoading]);
+
+  // Call inject once when the layout mounts
+  if (typeof window !== 'undefined') {
+    inject();
+    injectSpeedInsights();
+  }
 
   return (
     <>
