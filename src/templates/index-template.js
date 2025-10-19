@@ -12,6 +12,7 @@ import {
   Events,
 } from '@components';
 import AdhibotPopup from '@components/AdhiBotPopup';
+import Education from '@components/sections/education'; // <-- Add this import
 
 const StyledMainContainer = styled.main`
   counter-reset: section;
@@ -35,6 +36,7 @@ const IndexPage = ({ location }) => {
       <StyledMainContainer className="fillHeight">
         <Hero />
         <About />
+        <Education /> {/* <-- Add the Education section here */}
         <Jobs />
         <Featured />
         <Projects />
