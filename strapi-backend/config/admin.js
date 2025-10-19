@@ -1,4 +1,7 @@
 module.exports = ({ env }) => ({
+  build: {
+    target: 'es2018',
+  },
   auth: {
     secret: env('ADMIN_JWT_SECRET'),
   },
