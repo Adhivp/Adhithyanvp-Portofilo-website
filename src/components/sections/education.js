@@ -6,7 +6,11 @@ import { usePrefersReducedMotion } from '@hooks';
 
 const StyledEducationSection = styled.section`
   max-width: 700px;
-  margin: 0 auto 100px;
+  /* Reduce vertical spacing for this section only so it sits closer to the
+    top of the page and to the following section (Where I've Worked). This
+    overrides the global section padding for just this component. */
+  padding: 40px 0; /* smaller top/bottom spacing */
+  margin: 0 auto 20px; /* minimal bottom margin between sections */
   text-align: left;
 
   h2 {
