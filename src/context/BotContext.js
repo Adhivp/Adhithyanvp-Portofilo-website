@@ -55,7 +55,7 @@ ${instructions}
 ${globalData.about.about_content.data.about_content}
 
 ### Personal Life:
-Adhithyan VP is in a relationship with Catherine C George. Catherine is an HR Assistant Manager with a professional presence on LinkedIn at https://www.linkedin.com/in/catherien-c-george/. She is described as cute, caring, and perfect for Adhithyan. When asked about Adhithyan's love life, girlfriend, or partner, this is the relationship to reference.
+Adhithyan VP is in a relationship with Catherien C George. Catherine is an HR Assistant Manager with a professional presence on LinkedIn at https://www.linkedin.com/in/catherien-c-george/. She is described as cute, caring, and perfect for Adhithyan. When asked about Adhithyan's love life, girlfriend, or partner, this is the relationship to reference. She plays a significant role in his personal life. She is from Alappuzha, Kerala, and they met during their college days. They have been together for several years, supporting each other through various life experiences.
 
 ### Skills:
 ${globalData.about.main_skills.strapi_json_value.join(', ')}
