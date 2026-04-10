@@ -2,9 +2,10 @@ require("dotenv").config();
 const config = require('./src/config');
 
 const siteUrl = process.env.SITE_URL
+const strapiApiUrl = (process.env.STRAPI_API_URL || config.strapi.apiURL || '').replace(/\/+$/, '');
 
 const strapiConfig = {
-  apiURL: process.env.STRAPI_API_URL || config.strapi.apiURL,
+  apiURL: strapiApiUrl,
   collectionTypes: [
     {
       singularName: "job",
@@ -48,12 +49,12 @@ const strapiConfig = {
   queryLimit: 1000,
   accessToken: process.env.STRAPI_TOKEN || config.strapi.accessToken,
   debug: true,
-  fetchOptions: {
-    headers: {
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    },
+  headers: {
+    // ngrok may block automated clients unless this header is present.
+    'ngrok-skip-browser-warning': '1',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    Pragma: 'no-cache',
+    Expires: '0',
   },
 };
 
