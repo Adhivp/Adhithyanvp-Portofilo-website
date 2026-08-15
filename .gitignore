@@ -11,3 +11,9 @@ package-lock.json
 .vscode/
 yarn.lock
 .env
+
+# Cloudflare Workers
+workers/adhibot-worker/.wrangler/
+workers/adhibot-worker/dist/
+workers/adhibot-worker/.dev.vars
+workers/adhibot-worker/scripts/vectors.ndjson

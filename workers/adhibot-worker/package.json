@@ -1,0 +1,27 @@
+{
+  "name": "adhibot-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker for Adhibot AI chat",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "vectorize:create": "wrangler vectorize create adhibot-knowledge --dimensions=768 --metric=cosine",
+    "vectorize:insert": "node scripts/insert-vectors.js",
+    "vectorize:sync": "node scripts/sync-from-strapi.js && wrangler vectorize insert adhibot-knowledge --file=scripts/vectors.ndjson",
+    "vectorize:clear": "wrangler vectorize delete adhibot-knowledge && npm run vectorize:create"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "ai",
+    "chat"
+  ],
+  "author": "Adhithyan VP",
+  "license": "MIT",
+  "devDependencies": {
+    "dotenv": "^17.4.2",
+    "wrangler": "^3.78.0"
+  }
+}

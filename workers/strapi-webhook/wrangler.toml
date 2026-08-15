@@ -1,0 +1,24 @@
+name = "strapi-webhook"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+# Workers AI binding for generating embeddings
+[ai]
+binding = "AI"
+
+# Vectorize binding
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "adhibot-knowledge"
+
+# Environment variables
+[vars]
+CLOUDFLARE_PAGES_PROJECT_NAME = "adhivp-portfolio"
+# Add your Cloudflare account ID here
+CLOUDFLARE_ACCOUNT_ID = "your-account-id"
+
+# Secrets (set via wrangler secret put)
+# WEBHOOK_SECRET - to verify requests from Strapi
+# CLOUDFLARE_API_TOKEN - for triggering Pages rebuild
+# STRAPI_API_URL - your Strapi instance
+# STRAPI_TOKEN - read access token

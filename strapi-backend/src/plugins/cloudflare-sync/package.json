@@ -1,0 +1,35 @@
+{
+  "name": "cloudflare-sync",
+  "version": "1.0.0",
+  "description": "Manual sync button for Cloudflare vectorization and rebuild",
+  "strapi": {
+    "name": "cloudflare-sync",
+    "description": "Sync content to Cloudflare",
+    "kind": "plugin",
+    "displayName": "Cloudflare Sync"
+  },
+  "dependencies": {
+    "@strapi/design-system": "^1.19.0",
+    "@strapi/helper-plugin": "^4.25.0",
+    "@strapi/icons": "^1.19.0",
+    "prop-types": "^15.8.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "peerDependencies": {
+    "@strapi/strapi": "^4.0.0"
+  },
+  "author": {
+    "name": "Adhithyan VP"
+  },
+  "maintainers": [
+    {
+      "name": "Adhithyan VP"
+    }
+  ],
+  "engines": {
+    "node": ">=16.0.0 <=20.x.x",
+    "npm": ">=6.0.0"
+  },
+  "license": "MIT"
+}
