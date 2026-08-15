@@ -1,0 +1,34 @@
+name = "adhibot-worker"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+# Workers AI binding
+[ai]
+binding = "AI"
+
+# Vectorize binding for knowledge base
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "adhibot-knowledge"
+
+# Durable Objects for session management
+[[durable_objects.bindings]]
+name = "SESSIONS"
+class_name = "ChatSession"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ChatSession"]
+
+[observability.logs]
+enabled = true
+invocation_logs = true
+
+# Environment variables
+[vars]
+ALLOWED_ORIGINS = "https://adhivp.com"
+MAX_HISTORY_LENGTH = "10"
+SESSION_TIMEOUT_MINUTES = "60"
+
+# Secrets (set via wrangler secret put)
+# WORKER_API_KEY - for API authentication

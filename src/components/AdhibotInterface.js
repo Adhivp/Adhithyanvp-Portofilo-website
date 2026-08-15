@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { useBotContext } from '../context/BotContext';
-import { getChatResponse } from '../services/geminiService';
+import { getChatResponse, clearSession } from '../services/cloudflareService';
 import IconBot from './icons/bot';
 import TypingAnimation from './TypingAnimation';
 import ReactMarkdown from 'react-markdown';
@@ -148,6 +148,19 @@ const StyledWarningBanner = styled.div`
   text-align: center;
 `;
 
+const StyledActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  button {
+    ${({ theme }) => theme.mixins.smallButton};
+    font-size: var(--fz-xs);
+    padding: 0.5rem 0.75rem;
+  }
+`;
+
 const StyledMarkdown = styled.div`
   * {
     color: inherit;
@@ -255,11 +268,32 @@ const AdhibotInterface = () => {
     }
   };
 
+  const handleClearSession = async () => {
+    try {
+      await clearSession();
+      setMessages([
+        {
+          type: 'bot',
+          text: "Session cleared! I'm Adhibot, Adhithyan's AI assistant. How can I help you today?",
+          isTyping: false
+        }
+      ]);
+    } catch (error) {
+      console.error('Error clearing session:', error);
+    }
+  };
+
   return (
     <StyledChatContainer>
       <StyledWarningBanner>
-        ⚠️ Adhibot is currently in beta. Responses may occasionally be inaccurate or contain hallucinations.
+        ⚠️ Adhibot is powered by Cloudflare AI. Conversations are remembered during your session.
       </StyledWarningBanner>
+
+      <StyledActions>
+        <button onClick={handleClearSession} disabled={isLoading}>
+          Clear History
+        </button>
+      </StyledActions>
       
       <StyledChatHeader>
         <h2>
