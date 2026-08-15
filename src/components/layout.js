@@ -12,6 +12,7 @@ const StyledContent = styled.div`
   min-height: 100vh;
 `;
 
+
 const Layout = ({ children, location = {} }) => {
   const isHome = location.pathname === '/';
   const [isLoading, setIsLoading] = useState(isHome);
