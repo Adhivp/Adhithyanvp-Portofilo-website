@@ -2,7 +2,7 @@ require("dotenv").config();
 const config = require('./src/config');
 
 const siteUrl = process.env.SITE_URL
-const strapiApiUrl = (process.env.STRAPI_API_URL || config.strapi.apiURL || '').replace(/\/+$/, '');
+const strapiApiUrl = (process.env.STRAPI_API_URL || '').replace(/\/+$/, '');
 
 const strapiConfig = {
   apiURL: strapiApiUrl,
@@ -47,7 +47,7 @@ const strapiConfig = {
     }
   ],
   queryLimit: 1000,
-  accessToken: process.env.STRAPI_TOKEN || config.strapi.accessToken,
+  accessToken: process.env.STRAPI_TOKEN,
   debug: true,
   headers: {
     // ngrok may block automated clients unless this header is present.
