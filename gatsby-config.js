@@ -90,7 +90,24 @@ module.exports = {
     {
       resolve: `gatsby-plugin-offline`,
       options: {
-        precachePages: [],
+        precachePages: [`/`, `/projects-archive/`, `/events-archive/`],
+        workboxConfig: {
+          globPatterns: ['**/*.{js,jpg,png,html,css}'],
+          runtimeCaching: [
+            {
+              urlPattern: /(\.js$|\.css$|static\/)/,
+              handler: 'CacheFirst',
+            },
+            {
+              urlPattern: /^https?:.*\/page-data\/.*\.json/,
+              handler: 'StaleWhileRevalidate',
+            },
+            {
+              urlPattern: /^https?:.*\.(png|jpg|jpeg|webp|svg|gif|tiff|js|woff|woff2|json|css)$/,
+              handler: 'StaleWhileRevalidate',
+            },
+          ],
+        },
       },
     },
     {

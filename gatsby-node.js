@@ -76,7 +76,7 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
 };
 
 // Webpack Configuration (Optional)
-exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
+exports.onCreateWebpackConfig = ({ stage, loaders, actions, getConfig }) => {
   // Fixing third-party modules during build
   if (stage === 'build-html' || stage === 'develop-html') {
     actions.setWebpackConfig({
@@ -95,6 +95,42 @@ exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
             use: loaders.null(),
           },
         ],
+      },
+    });
+  }
+
+  // Production optimizations
+  if (stage === 'build-javascript' || stage === 'build-html') {
+    const config = getConfig();
+
+    actions.setWebpackConfig({
+      optimization: {
+        minimize: true,
+        usedExports: true,
+        sideEffects: false,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            default: false,
+            vendors: false,
+            // Vendor chunk
+            vendor: {
+              name: 'vendor',
+              chunks: 'all',
+              test: /node_modules/,
+              priority: 20,
+            },
+            // Common chunk
+            common: {
+              name: 'common',
+              minChunks: 2,
+              chunks: 'all',
+              priority: 10,
+              reuseExistingChunk: true,
+              enforce: true,
+            },
+          },
+        },
       },
     });
   }

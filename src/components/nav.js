@@ -212,8 +212,8 @@ const Nav = ({ isHome }) => {
   );
 
   return (
-    <StyledHeader scrollDirection={scrollDirection} scrolledToTop={scrolledToTop}>
-      <StyledNav>
+    <StyledHeader scrollDirection={scrollDirection} scrolledToTop={scrolledToTop} role="banner">
+      <StyledNav aria-label="Main navigation">
         {prefersReducedMotion ? (
           <>
             {Logo}
