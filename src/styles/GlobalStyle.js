@@ -116,16 +116,16 @@ const GlobalStyle = createGlobalStyle`
     width: 100%;
     max-width: 1600px;
     min-height: 100vh;
-    padding: 200px 150px;
+    padding: 100px 150px 80px;
 
     @media (max-width: 1080px) {
-      padding: 200px 100px;
+      padding: 100px 100px 80px;
     }
     @media (max-width: 768px) {
-      padding: 150px 50px;
+      padding: 100px 50px 60px;
     }
     @media (max-width: 480px) {
-      padding: 125px 25px;
+      padding: 80px 25px 50px;
     }
 
     &.fillHeight {
@@ -145,15 +145,15 @@ const GlobalStyle = createGlobalStyle`
 
   section {
     margin: 0 auto;
-    padding: 100px 0;
+    padding: 60px 0;
     max-width: 1000px;
 
     @media (max-width: 768px) {
-      padding: 80px 0;
+      padding: 50px 0;
     }
 
     @media (max-width: 480px) {
-      padding: 60px 0;
+      padding: 40px 0;
     }
   }
 
@@ -368,10 +368,13 @@ const GlobalStyle = createGlobalStyle`
     width: 1px;
     height: 1px;
     overflow: hidden;
-    z-index: -99;
+    z-index: 1;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
 
     &:hover,
-    &:focus {
+    &:focus,
+    &:focus-visible {
       background-color: var(--green);
       color: var(--navy);
       top: 0;
@@ -382,6 +385,7 @@ const GlobalStyle = createGlobalStyle`
       z-index: 99;
       box-shadow: none;
       transform: none;
+      clip: auto;
     }
   }
 

@@ -51,15 +51,11 @@ const Layout = ({ children, location = {} }) => {
 
   return (
     <>
-      <Helmet>
-        {/* Add any specific meta tags or title here if needed */}
-      </Helmet>
-
       <div id="root">
         <ThemeProvider theme={theme}>
           <GlobalStyle />
 
-          <a className="skip-to-content" href="#content">
+          <a className="skip-to-content" href="#content" tabIndex="0">
             Skip to Content
           </a>
 
@@ -72,10 +68,10 @@ const Layout = ({ children, location = {} }) => {
                 <Social isHome={isHome} />
                 <Email isHome={isHome} />
 
-                <div id="content">
+                <main id="content" role="main">
                   {children}
                   <Footer />
-                </div>
+                </main>
               </StyledContent>
             )}
           </BotProvider>
