@@ -363,29 +363,18 @@ const GlobalStyle = createGlobalStyle`
   .skip-to-content {
     ${({ theme }) => theme.mixins.button};
     position: absolute;
-    top: auto;
-    left: -999px;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    z-index: 1;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
+    top: -40px;
+    left: 0;
+    z-index: 100;
+    padding: 8px 16px;
+    transition: top 0.3s;
 
-    &:hover,
-    &:focus,
-    &:focus-visible {
+    &:focus {
+      top: 0;
       background-color: var(--green);
       color: var(--navy);
-      top: 0;
-      left: 0;
-      width: auto;
-      height: auto;
-      overflow: auto;
-      z-index: 99;
-      box-shadow: none;
-      transform: none;
-      clip: auto;
+      outline: 2px solid var(--green);
+      outline-offset: 2px;
     }
   }
 

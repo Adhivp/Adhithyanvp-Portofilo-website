@@ -90,77 +90,7 @@ module.exports = {
     {
       resolve: `gatsby-plugin-offline`,
       options: {
-        precachePages: [`/`, `/projects-archive/`, `/events-archive/`],
-        workboxConfig: {
-          globPatterns: ['**/*.{js,jpg,png,html,css}'],
-          // Check for updates every time
-          skipWaiting: true,
-          clientsClaim: true,
-          runtimeCaching: [
-            {
-              // HTML pages - always fetch fresh from network first
-              urlPattern: /\.html$/,
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'html-cache',
-                networkTimeoutSeconds: 3,
-                expiration: {
-                  maxEntries: 50,
-                  maxAgeSeconds: 60, // 1 minute
-                },
-              },
-            },
-            {
-              // Page data - always check network first for fresh content
-              urlPattern: /^https?:.*\/page-data\/.*\.json/,
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'page-data-cache',
-                networkTimeoutSeconds: 3,
-                expiration: {
-                  maxEntries: 100,
-                  maxAgeSeconds: 60, // 1 minute
-                },
-              },
-            },
-            {
-              // App data - always check network first
-              urlPattern: /^https?:.*\/app-data\.json/,
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'app-data-cache',
-                networkTimeoutSeconds: 3,
-                expiration: {
-                  maxAgeSeconds: 60, // 1 minute
-                },
-              },
-            },
-            {
-              // Static assets with hashes - cache first (they never change)
-              urlPattern: /(\.js$|\.css$|static\/)/,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'static-assets',
-                expiration: {
-                  maxEntries: 200,
-                  maxAgeSeconds: 31536000, // 1 year
-                },
-              },
-            },
-            {
-              // Images and fonts - cache with revalidation
-              urlPattern: /^https?:.*\.(png|jpg|jpeg|webp|svg|gif|tiff|woff|woff2)$/,
-              handler: 'StaleWhileRevalidate',
-              options: {
-                cacheName: 'image-font-cache',
-                expiration: {
-                  maxEntries: 100,
-                  maxAgeSeconds: 604800, // 1 week
-                },
-              },
-            },
-          ],
-        },
+        precachePages: [],
       },
     },
     {
