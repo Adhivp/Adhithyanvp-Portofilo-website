@@ -11,14 +11,18 @@ binding = "AI"
 binding = "VECTORIZE"
 index_name = "adhibot-knowledge"
 
-# Environment variables
-[vars]
-CLOUDFLARE_PAGES_PROJECT_NAME = "adhivp-portfolio"
-# Add your Cloudflare account ID here
-CLOUDFLARE_ACCOUNT_ID = "your-account-id"
+# D1 Database for content hash tracking
+[[d1_databases]]
+binding = "DB"
+database_name = "adhibot-content-hashes"
+database_id = "d034d88d-447b-495b-a9b9-0878ae4594c1"
+
+[observability.logs]
+enabled = true
+invocation_logs = true
 
 # Secrets (set via wrangler secret put)
 # WEBHOOK_SECRET - to verify requests from Strapi
-# CLOUDFLARE_API_TOKEN - for triggering Pages rebuild
+# DEPLOY_HOOK_URL - Cloudflare Pages Deploy Hook URL (from Pages dashboard)
 # STRAPI_API_URL - your Strapi instance
 # STRAPI_TOKEN - read access token
