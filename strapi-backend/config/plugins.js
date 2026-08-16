@@ -3,16 +3,17 @@ module.exports = ({ env }) => ({
     config: {
       provider: '@strapi/provider-upload-aws-s3',
       providerOptions: {
-        accessKeyId: env('R2_ACCESS_KEY_ID'),
-        secretAccessKey: env('R2_SECRET_ACCESS_KEY'),
+        credentials: {
+          accessKeyId: env('R2_ACCESS_KEY_ID'),
+          secretAccessKey: env('R2_SECRET_ACCESS_KEY'),
+        },
         endpoint: env('R2_ENDPOINT'),
+        region: 'auto',
+        forcePathStyle: true,
         params: {
           Bucket: env('R2_BUCKET', 'adhivp-media'),
         },
-        s3Options: {
-          forcePathStyle: true,
-          signatureVersion: 'v4',
-        },
+        baseUrl: env('R2_PUBLIC_URL'),
       },
       actionOptions: {
         upload: {},
