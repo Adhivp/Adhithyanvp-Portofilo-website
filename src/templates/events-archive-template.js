@@ -206,40 +206,69 @@ const PopupOverlay = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.9);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 2000;
+  cursor: pointer;
 `;
 
 const PopupContent = styled.div`
-  max-width: 90%;
-  max-height: 90%;
+  max-width: 95%;
+  max-height: 95%;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   img {
-    width: 100%;
+    max-width: 100%;
+    max-height: 90vh;
+    width: auto;
     height: auto;
     object-fit: contain;
     border-radius: var(--border-radius);
+    cursor: default;
+  }
+
+  @media (max-width: 768px) {
+    max-width: 100%;
+    max-height: 100%;
+    padding: 10px;
+
+    img {
+      max-height: 80vh;
+      border-radius: 4px;
+    }
+
+    .close-button {
+      top: -5px;
+      right: -5px;
+    }
   }
 
   .close-button {
     position: absolute;
-    top: -10px;
-    right: -10px;
-    background: var(--green);
+    top: 10px;
+    right: 10px;
+    background: #e74c3c;
     border: none;
     border-radius: 50%;
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    font-size: 1.5rem;
+    color: white;
+    line-height: 1;
+    z-index: 2001;
 
-    svg {
-      width: 16px;
-      height: 16px;
-      color: white;
+    &:hover {
+      background: #c0392b;
     }
   }
 `;
@@ -247,8 +276,9 @@ const PopupContent = styled.div`
 const EventHeader = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 15px;
+  flex-wrap: wrap;
 
   h2 {
     margin: 0;
@@ -256,6 +286,8 @@ const EventHeader = styled.div`
     display: flex;
     align-items: center;
     color: var(--slate);
+    word-break: break-word;
+    flex-wrap: wrap;
   }
 
   .title-icons {
@@ -277,6 +309,16 @@ const EventHeader = styled.div`
           color: var(--green);
         }
       }
+    }
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 1.4rem;
+    }
+
+    .title-icons {
+      margin-left: 10px;
     }
   }
 `;
@@ -332,10 +374,13 @@ const EventsArchivePage = ({ location }) => {
           }
           cover {
             localFile {
+              publicURL
               childImageSharp {
                 gatsbyImageData(width: 200, placeholder: BLURRED, formats: [AUTO, WEBP, AVIF])
+                full: gatsbyImageData(width: 1200, placeholder: BLURRED, formats: [AUTO, WEBP])
               }
             }
+            url
           }
         }
       }
@@ -358,9 +403,21 @@ const EventsArchivePage = ({ location }) => {
   const [selectedEvent, setSelectedEvent] = useState(null);
 
   const handleImageClick = (cover) => {
-    const imageUrl = cover?.localFile?.childImageSharp?.gatsbyImageData
-        ? getImage(cover.localFile.childImageSharp.gatsbyImageData)
-        : '';
+    console.log('=== EVENT IMAGE CLICK DEBUG ===');
+    console.log('cover object:', JSON.stringify(cover, null, 2));
+    console.log('cover.localFile:', cover?.localFile);
+    console.log('cover.localFile.publicURL:', cover?.localFile?.publicURL);
+    console.log('cover.localFile.childImageSharp:', cover?.localFile?.childImageSharp);
+    console.log('full:', cover?.localFile?.childImageSharp?.full);
+    console.log('gatsbyImageData:', cover?.localFile?.childImageSharp?.gatsbyImageData);
+    console.log('gatsbyImageData.images:', cover?.localFile?.childImageSharp?.gatsbyImageData?.images);
+    console.log('fallback src:', cover?.localFile?.childImageSharp?.gatsbyImageData?.images?.fallback?.src);
+    console.log('cover.url:', cover?.url);
+    const fullData = cover?.localFile?.childImageSharp?.full;
+    const thumbData = cover?.localFile?.childImageSharp?.gatsbyImageData;
+    const imageUrl = fullData?.images?.fallback?.src || thumbData?.images?.fallback?.src || cover?.localFile?.publicURL || cover?.url || '';
+    console.log('FINAL imageUrl:', imageUrl);
+    console.log('=== END DEBUG ===');
     setPopupImageUrl(imageUrl);
     setIsPopupOpen(true);
   };
@@ -479,15 +536,26 @@ const EventsArchivePage = ({ location }) => {
                       </td>
                       <td className="image-column hide-on-mobile">
                         {cover?.localFile?.childImageSharp?.gatsbyImageData && (
-                          <GatsbyImage
-                            image={getImage(cover.localFile.childImageSharp.gatsbyImageData)}
-                            alt={title}
-                            className="thumbnail"
+                          <div
+                            role="button"
+                            tabIndex={0}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleImageClick(cover);
                             }}
-                          />
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.stopPropagation();
+                                handleImageClick(cover);
+                              }
+                            }}
+                          >
+                            <GatsbyImage
+                              image={getImage(cover.localFile.childImageSharp.gatsbyImageData)}
+                              alt={title}
+                              className="thumbnail"
+                            />
+                          </div>
                         )}
                       </td>
                       <td className="links">
@@ -556,12 +624,16 @@ const EventsArchivePage = ({ location }) => {
             </StyledEventDescription>
 
             {selectedEvent.cover?.localFile?.childImageSharp?.gatsbyImageData && (
-              <div>
+              <div
+                role="button"
+                tabIndex={0}
+                style={{ width: '200px', cursor: 'pointer' }}
+                onClick={() => handleImageClick(selectedEvent.cover)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleImageClick(selectedEvent.cover); }}
+              >
                 <GatsbyImage
                   image={getImage(selectedEvent.cover.localFile.childImageSharp.gatsbyImageData)}
                   alt={selectedEvent.title}
-                  style={{ width: '200px', cursor: 'pointer' }}
-                  onClick={() => handleImageClick(selectedEvent.cover)}
                 />
               </div>
             )}
@@ -569,12 +641,13 @@ const EventsArchivePage = ({ location }) => {
         </Modal>
       )}
 
-      {isPopupOpen && (
+      {isPopupOpen && popupImageUrl && (
         <PopupOverlay onClick={handleCloseImagePopup}>
           <PopupContent onClick={(e) => e.stopPropagation()}>
-            {popupImageUrl && (
-              <img src={popupImageUrl} alt="Full size" />
-            )}
+            <button className="close-button" onClick={handleCloseImagePopup}>
+              &times;
+            </button>
+            <img src={popupImageUrl} alt="Full size" />
           </PopupContent>
         </PopupOverlay>
       )}

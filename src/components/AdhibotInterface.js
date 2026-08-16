@@ -286,7 +286,7 @@ const AdhibotInterface = () => {
   return (
     <StyledChatContainer>
       <StyledWarningBanner>
-        ⚠️ Adhibot is powered by Cloudflare AI. Conversations are remembered during your session.
+        ⚠️ Adhibot is powered by Cloudflare AI. Conversations are remembered during your session. AI can make mistakes, so please verify any critical information. Use responsibly.
       </StyledWarningBanner>
 
       <StyledActions>

@@ -80,49 +80,23 @@ const StyledEventsSection = styled.section`
     a {
       width: 100%;
       height: 100%;
-      background-color: var(--green);
       border-radius: var(--border-radius);
       vertical-align: middle;
       display: block;
 
       &:hover,
       &:focus {
-        background: transparent;
         outline: 0;
-
-        &:before,
-        .img {
-          background: transparent;
-          filter: none;
-        }
-      }
-
-      &:before {
-        content: '';
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 3;
-        transition: var(--transition);
-        background-color: var(--navy);
-        mix-blend-mode: screen;
       }
     }
 
     .img {
       border-radius: var(--border-radius);
-      mix-blend-mode: multiply;
-      filter: grayscale(100%) contrast(1) brightness(90%);
 
       @media (max-width: 768px) {
         object-fit: cover;
         width: auto;
         height: 100%;
-        filter: grayscale(100%) contrast(1) brightness(50%);
       }
     }
   }
@@ -200,26 +174,9 @@ const StyledEvent = styled.li`
       position: relative;
       overflow: hidden;
 
-      &:before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: var(--navy);
-        mix-blend-mode: screen;
-        transition: var(--transition);
-        z-index: 2;
-
-        @media (max-width: 768px) {
-          display: none;
-        }
-      }
-
-      &:hover:before,
-      &:focus:before {
-        background-color: transparent;
+      &:hover,
+      &:focus {
+        outline: 0;
       }
 
       .img {
@@ -227,13 +184,6 @@ const StyledEvent = styled.li`
         height: 100%;
         object-fit: cover;
         transition: var(--transition);
-        mix-blend-mode: multiply;
-        filter: grayscale(100%) contrast(1) brightness(90%);
-
-        @media (max-width: 768px) {
-          mix-blend-mode: normal;
-          filter: none;
-        }
       }
     }
   }
