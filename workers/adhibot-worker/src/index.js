@@ -101,7 +101,7 @@ export default {
 
         console.log('🔎 Searching Vectorize...');
         const matches = await env.VECTORIZE.query(embedding.data[0], {
-          topK: 3,
+          topK: 10,  // Increased from 3 to 10 for more comprehensive results
           returnValues: true,
           returnMetadata: true,
         });
