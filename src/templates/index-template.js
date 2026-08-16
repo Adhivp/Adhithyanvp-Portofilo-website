@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import {
   Layout,
+  Head,
   Hero,
   About,
   Jobs,
@@ -33,6 +34,7 @@ const IndexPage = ({ location }) => {
 
   return (
     <Layout location={location}>
+      <Head />
       <StyledMainContainer className="fillHeight">
         <Hero />
         <About />
