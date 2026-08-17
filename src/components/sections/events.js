@@ -8,6 +8,7 @@ import { IconExternal, IconLinkedin } from '@components/icons';
 import { usePrefersReducedMotion } from '@hooks';
 import { getImage, GatsbyImage } from 'gatsby-plugin-image';
 import { graphql, useStaticQuery } from 'gatsby';
+import ReactMarkdown from 'react-markdown';
 
 const StyledEventsSection = styled.section`
   display: flex;
@@ -191,6 +192,7 @@ const StyledEvent = styled.li`
   .event-links {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
     color: var(--light-slate);
 
     a {
@@ -220,16 +222,20 @@ const StyledEvent = styled.li`
   .event-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     width: 100%;
+    margin-top: 15px;
     margin-bottom: 10px;
+    gap: 10px;
   }
 
   .event-title {
     margin: 0;
     color: var(--lightest-slate);
     font-size: var(--fz-xxl);
-    flex-grow: 1;
+    flex: 1;
+    min-width: 0;
+    word-break: break-word;
 
     a {
       color: inherit;
@@ -249,8 +255,39 @@ const StyledEvent = styled.li`
     font-size: 17px;
     margin-bottom: 10px;
 
+    .description-text {
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+
+      &.expanded {
+        display: block;
+        -webkit-line-clamp: unset;
+      }
+    }
+
+    .read-more-btn {
+      background: none;
+      border: none;
+      color: var(--green);
+      font-size: var(--fz-sm);
+      font-family: var(--font-mono);
+      cursor: pointer;
+      padding: 5px 0;
+      margin-top: 5px;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
     a {
       ${({ theme }) => theme.mixins.inlineLink};
+    }
+
+    strong {
+      color: var(--lightest-slate);
     }
   }
 
@@ -303,6 +340,7 @@ const StyledEvent = styled.li`
     }
   }
 `;
+
 
 const Events = () => {
   const data = useStaticQuery(graphql`
@@ -357,10 +395,12 @@ const Events = () => {
   const firstFour = limitedEvents.slice(0, GRID_LIMIT);
   const eventsToShow = showMore ? limitedEvents : firstFour;
 
-  const eventInner = (event) => {
+  const EventCard = ({ event }) => {
+    const [expanded, setExpanded] = useState(false);
     const { title, location, date, cover, content, linkedin, external } = event;
     const contentString =
       typeof content?.data?.content === 'string' ? content.data.content : '';
+    const needsReadMore = contentString.length > 150;
 
     return (
       <div className="event-inner">
@@ -433,10 +473,19 @@ const Events = () => {
           </div>
         </div>
 
-        <div
-          className="event-description"
-          dangerouslySetInnerHTML={{ __html: contentString || '<p>No Description Available.</p>' }}
-        />
+        <div className="event-description">
+          <div className={`description-text ${expanded ? 'expanded' : ''}`}>
+            <ReactMarkdown>{contentString || 'No Description Available.'}</ReactMarkdown>
+          </div>
+          {needsReadMore && (
+            <button
+              className="read-more-btn"
+              onClick={() => setExpanded(!expanded)}
+            >
+              {expanded ? '↑ Read less' : '↓ Read more'}
+            </button>
+          )}
+        </div>
 
         <footer className="event-footer">
           <span className="event-date">{date || 'Date not available'}</span>
@@ -461,7 +510,7 @@ const Events = () => {
             <>
               {eventsToShow &&
                 eventsToShow.map((event, i) => (
-                  <StyledEvent key={event.id}>{eventInner(event)}</StyledEvent>
+                  <StyledEvent key={event.id}><EventCard event={event} /></StyledEvent>
                 ))}
             </>
           ) : (
@@ -482,7 +531,7 @@ const Events = () => {
                         }ms`,
                       }}
                     >
-                      {eventInner(event)}
+                      <EventCard event={event} />
                     </StyledEvent>
                   </CSSTransition>
                 ))}
