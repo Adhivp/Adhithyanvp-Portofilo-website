@@ -264,7 +264,32 @@ const StyledEvent = styled.li`
       &.expanded {
         display: block;
         -webkit-line-clamp: unset;
+        max-height: 250px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--green) var(--light-navy);
+
+        &::-webkit-scrollbar {
+          width: 6px;
+        }
+        &::-webkit-scrollbar-track {
+          background: var(--light-navy);
+          border-radius: 3px;
+        }
+        &::-webkit-scrollbar-thumb {
+          background-color: var(--green);
+          border-radius: 3px;
+        }
       }
+    }
+
+    .scroll-hint {
+      display: block;
+      color: var(--green);
+      font-size: var(--fz-xxs);
+      font-family: var(--font-mono);
+      margin-top: 4px;
+      opacity: 0.8;
     }
 
     .read-more-btn {
@@ -397,10 +422,18 @@ const Events = () => {
 
   const EventCard = ({ event }) => {
     const [expanded, setExpanded] = useState(false);
+    const descriptionRef = useRef(null);
     const { title, location, date, cover, content, linkedin, external } = event;
     const contentString =
       typeof content?.data?.content === 'string' ? content.data.content : '';
     const needsReadMore = contentString.length > 150;
+
+    const handleToggle = () => {
+      if (expanded && descriptionRef.current) {
+        descriptionRef.current.scrollTop = 0;
+      }
+      setExpanded(!expanded);
+    };
 
     return (
       <div className="event-inner">
@@ -474,13 +507,19 @@ const Events = () => {
         </div>
 
         <div className="event-description">
-          <div className={`description-text ${expanded ? 'expanded' : ''}`}>
+          <div
+            ref={descriptionRef}
+            className={`description-text ${expanded ? 'expanded' : ''}`}
+          >
             <ReactMarkdown>{contentString || 'No Description Available.'}</ReactMarkdown>
           </div>
+          {expanded && needsReadMore && (
+            <span className="scroll-hint">↕ Scroll for more</span>
+          )}
           {needsReadMore && (
             <button
               className="read-more-btn"
-              onClick={() => setExpanded(!expanded)}
+              onClick={handleToggle}
             >
               {expanded ? '↑ Read less' : '↓ Read more'}
             </button>
