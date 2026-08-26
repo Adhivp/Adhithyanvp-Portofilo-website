@@ -211,6 +211,12 @@ const Nav = ({ isHome }) => {
     </a>
   );
 
+  const ChatbotLink = (
+    <Link className="resume-button" to="/adhibot">
+      Chat with Adhibot
+    </Link>
+  );
+
   return (
     <StyledHeader scrollDirection={scrollDirection} scrolledToTop={scrolledToTop} role="banner">
       <StyledNav aria-label="Main navigation">
@@ -228,6 +234,7 @@ const Nav = ({ isHome }) => {
                   ))}
               </ol>
               <div>{ResumeLink}</div>
+              <div>{ChatbotLink}</div>
             </StyledLinks>
 
             <Menu />
@@ -262,6 +269,15 @@ const Nav = ({ isHome }) => {
                   <CSSTransition classNames={fadeDownClass} timeout={timeout}>
                     <div style={{ transitionDelay: `${isHome ? navLinks.length * 100 : 0}ms` }}>
                       {ResumeLink}
+                    </div>
+                  </CSSTransition>
+                )}
+              </TransitionGroup>
+              <TransitionGroup component={null}>
+                {isMounted && (
+                  <CSSTransition classNames={fadeDownClass} timeout={timeout}>
+                    <div style={{ transitionDelay: `${isHome ? (navLinks.length + 1) * 100 : 0}ms` }}>
+                      {ChatbotLink}
                     </div>
                   </CSSTransition>
                 )}

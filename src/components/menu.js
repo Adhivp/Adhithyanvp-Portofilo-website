@@ -152,6 +152,10 @@ const StyledSidebar = styled.aside`
     padding: 18px 50px;
     margin: 10% auto 0;
     width: max-content;
+
+    & + .resume-link {
+      margin-top: 20px;
+    }
   }
 `;
 
@@ -269,6 +273,10 @@ const Menu = () => {
             <a href="/resume.pdf" className="resume-link">
               Resume
             </a>
+
+            <Link to="/adhibot" className="resume-link" onClick={() => setMenuOpen(false)}>
+              Chat with Adhibot
+            </Link>
           </nav>
         </StyledSidebar>
       </div>
