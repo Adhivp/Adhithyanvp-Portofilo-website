@@ -44,6 +44,12 @@ const strapiConfig = {
       queryParams: {
         populate:"*",
       },
+    },
+    {
+      singularName: "resume",
+      queryParams: {
+        populate: "*",
+      },
     }
   ],
   queryLimit: 1000,

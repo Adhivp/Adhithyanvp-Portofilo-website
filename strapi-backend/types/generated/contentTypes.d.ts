@@ -461,6 +461,28 @@ export interface ApiProjectProject extends Schema.CollectionType {
   };
 }
 
+export interface ApiResumeResume extends Schema.SingleType {
+  collectionName: 'resumes';
+  info: {
+    displayName: 'Resume';
+    pluralName: 'resumes';
+    singularName: 'resume';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<'api::resume.resume', 'oneToOne', 'admin::user'> &
+      Attribute.Private;
+    file: Attribute.Media<'files'>;
+    publishedAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    updatedBy: Attribute.Relation<'api::resume.resume', 'oneToOne', 'admin::user'> &
+      Attribute.Private;
+  };
+}
+
 export interface PluginContentReleasesRelease extends Schema.CollectionType {
   collectionName: 'strapi_releases';
   info: {
@@ -832,6 +854,7 @@ declare module '@strapi/types' {
       'api::hero.hero': ApiHeroHero;
       'api::job.job': ApiJobJob;
       'api::project.project': ApiProjectProject;
+      'api::resume.resume': ApiResumeResume;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

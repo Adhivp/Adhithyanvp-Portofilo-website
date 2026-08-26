@@ -4,7 +4,7 @@ import { Link } from 'gatsby';
 import styled from 'styled-components';
 import { navLinks } from '@config';
 import { KEY_CODES } from '@utils';
-import { useOnClickOutside } from '@hooks';
+import { useOnClickOutside, useResumeUrl } from '@hooks';
 
 const StyledMenu = styled.div`
   display: none;
@@ -161,6 +161,7 @@ const StyledSidebar = styled.aside`
 
 const Menu = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const resumeUrl = useResumeUrl();
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
@@ -270,7 +271,7 @@ const Menu = () => {
               </ol>
             )}
 
-            <a href="/resume.pdf" className="resume-link">
+            <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="resume-link">
               Resume
             </a>
 
