@@ -1,0 +1,218 @@
+name: Weekly Strapi Backup to MEGA
+
+on:
+  schedule:
+    - cron: '0 2 * * 3' # Every Wednesday at 2:00 AM UTC
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client megatools awscli
+
+      - name: Create .megarc config
+        env:
+          MEGA_EMAIL: ${{ secrets.MEGA_EMAIL }}
+          MEGA_PASSWORD: ${{ secrets.MEGA_PASSWORD }}
+        run: |
+          echo "[Login]" > ~/.megarc
+          echo "Username = $MEGA_EMAIL" >> ~/.megarc
+          echo "Password = $MEGA_PASSWORD" >> ~/.megarc
+          chmod 600 ~/.megarc
+
+      - name: Create MEGA backup folder
+        run: |
+          megamkdir /Root/strapi-backups 2>/dev/null || true
+
+      - name: Generate DB hash
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          DB_HASH=$(psql "$DATABASE_URL" -t -A -c "
+            SELECT md5(string_agg(table_hash, ',' ORDER BY table_name))
+            FROM (
+              SELECT c.relname AS table_name,
+                     md5(c.relname || ':' || c.reltuples::text) AS table_hash
+              FROM pg_class c
+              JOIN pg_namespace n ON n.oid = c.relnamespace
+              WHERE n.nspname = 'public' AND c.relkind = 'r'
+            ) sub;
+          ")
+          echo "DB_HASH=${DB_HASH}" >> $GITHUB_ENV
+          echo "DB hash: ${DB_HASH}"
+
+      - name: Generate R2 hash
+        env:
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY: ${{ secrets.R2_ACCESS_KEY }}
+          R2_SECRET_KEY: ${{ secrets.R2_SECRET_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+        run: |
+          aws configure set aws_access_key_id "$R2_ACCESS_KEY"
+          aws configure set aws_secret_access_key "$R2_SECRET_KEY"
+          R2_HASH=$(aws s3api list-objects-v2 --bucket "$R2_BUCKET" --endpoint-url "$R2_ENDPOINT" --query 'Contents[].{Key:Key,Size:Size,ETag:ETag}' --output text 2>/dev/null | md5sum | cut -d' ' -f1)
+          echo "R2_HASH=${R2_HASH}" >> $GITHUB_ENV
+          echo "R2 hash: ${R2_HASH}"
+
+      - name: Check what needs backup
+        run: |
+          # Download previous hashes from MEGA
+          megaget /Root/strapi-backups/last_db_hash.txt --path /tmp/ 2>/dev/null || echo "no_previous" > /tmp/last_db_hash.txt
+          megaget /Root/strapi-backups/last_r2_hash.txt --path /tmp/ 2>/dev/null || echo "no_previous" > /tmp/last_r2_hash.txt
+
+          PREV_DB_HASH=$(cat /tmp/last_db_hash.txt)
+          PREV_R2_HASH=$(cat /tmp/last_r2_hash.txt)
+
+          # Count existing backups
+          BACKUP_COUNT=$(megals /Root/strapi-backups | grep "strapi_" | grep -c "\.dump\|\.tar.gz" || echo "0")
+
+          echo "Previous DB hash:  ${PREV_DB_HASH}"
+          echo "Current DB hash:   ${DB_HASH}"
+          echo "Previous R2 hash:  ${PREV_R2_HASH}"
+          echo "Current R2 hash:   ${R2_HASH}"
+          echo "Existing backups:  ${BACKUP_COUNT}"
+
+          # Determine what changed
+          DB_CHANGED="false"
+          R2_CHANGED="false"
+
+          if [ "$DB_HASH" != "$PREV_DB_HASH" ]; then
+            DB_CHANGED="true"
+            echo "DB has changed"
+          fi
+
+          if [ "$R2_HASH" != "$PREV_R2_HASH" ]; then
+            R2_CHANGED="true"
+            echo "R2 media has changed"
+          fi
+
+          # Backup if: anything changed OR fewer than 2 backups exist
+          if [ "$DB_CHANGED" = "true" ] || [ "$R2_CHANGED" = "true" ] || [ "$BACKUP_COUNT" -lt 2 ]; then
+            echo "SHOULD_BACKUP=true" >> $GITHUB_ENV
+          else
+            echo "SHOULD_BACKUP=false" >> $GITHUB_ENV
+            echo "Nothing changed and 2 backups exist. Skipping."
+          fi
+
+          echo "DB_CHANGED=${DB_CHANGED}" >> $GITHUB_ENV
+          echo "R2_CHANGED=${R2_CHANGED}" >> $GITHUB_ENV
+
+      - name: Dump Neon PostgreSQL database
+        if: env.SHOULD_BACKUP == 'true'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          TIMESTAMP=$(date +%Y-%m-%d)
+          pg_dump "$DATABASE_URL" --no-owner --no-privileges --format=custom -f "strapi_db_${TIMESTAMP}.dump"
+          echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
+
+      - name: Sync R2 changes to MEGA mirror (upload only new/changed, delete removed)
+        if: env.SHOULD_BACKUP == 'true' && env.R2_CHANGED == 'true'
+        env:
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY: ${{ secrets.R2_ACCESS_KEY }}
+          R2_SECRET_KEY: ${{ secrets.R2_SECRET_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+        run: |
+          aws configure set aws_access_key_id "$R2_ACCESS_KEY"
+          aws configure set aws_secret_access_key "$R2_SECRET_KEY"
+
+          # Get current R2 file listing
+          aws s3api list-objects-v2 --bucket "$R2_BUCKET" --endpoint-url "$R2_ENDPOINT" \
+            --query 'Contents[].{Key:Key,ETag:ETag,Size:Size}' --output json > /tmp/current_manifest.json
+
+          # Get previous manifest from MEGA
+          megaget /Root/strapi-backups/r2_manifest.json --path /tmp/ 2>/dev/null || echo "[]" > /tmp/r2_manifest.json
+          cp /tmp/r2_manifest.json /tmp/prev_manifest.json 2>/dev/null || echo "[]" > /tmp/prev_manifest.json
+
+          # Create MEGA mirror folder
+          megamkdir /Root/strapi-backups/r2_mirror 2>/dev/null || true
+
+          # Find new/changed/deleted files
+          node -e "
+            const fs = require('fs');
+            const curr = JSON.parse(fs.readFileSync('/tmp/current_manifest.json', 'utf8')) || [];
+            let prev = [];
+            try { prev = JSON.parse(fs.readFileSync('/tmp/prev_manifest.json', 'utf8')) || []; } catch(e) {}
+
+            const prevMap = new Map(prev.map(f => [f.Key, f.ETag]));
+            const changed = curr.filter(f => !prevMap.has(f.Key) || prevMap.get(f.Key) !== f.ETag);
+            const deleted = prev.filter(f => !curr.find(c => c.Key === f.Key));
+
+            fs.writeFileSync('/tmp/changed_files.txt', changed.map(f => f.Key).join('\n'));
+            fs.writeFileSync('/tmp/deleted_files.txt', deleted.map(f => f.Key).join('\n'));
+            console.log('New/changed (uploading to MEGA): ' + changed.length + ' files');
+            console.log('Deleted (removing from MEGA): ' + deleted.length + ' files');
+            console.log('Unchanged (already in MEGA): ' + (curr.length - changed.length) + ' files');
+          "
+
+          # Download changed files from R2 and upload directly to MEGA
+          while IFS= read -r key; do
+            [ -z "$key" ] && continue
+            # Create subdirectory in MEGA if needed
+            DIR=$(dirname "$key")
+            if [ "$DIR" != "." ]; then
+              megamkdir "/Root/strapi-backups/r2_mirror/${DIR}" 2>/dev/null || true
+            fi
+            # Download from R2
+            mkdir -p "/tmp/r2_dl/$(dirname "$key")"
+            aws s3 cp "s3://${R2_BUCKET}/${key}" "/tmp/r2_dl/${key}" --endpoint-url "$R2_ENDPOINT"
+            # Remove old version from MEGA and upload new
+            megarm "/Root/strapi-backups/r2_mirror/${key}" 2>/dev/null || true
+            megaput --path "/Root/strapi-backups/r2_mirror/${DIR:-}" "/tmp/r2_dl/${key}"
+            # Free disk immediately
+            rm -f "/tmp/r2_dl/${key}"
+          done < /tmp/changed_files.txt
+
+          # Delete removed files from MEGA mirror
+          while IFS= read -r key; do
+            [ -z "$key" ] && continue
+            megarm "/Root/strapi-backups/r2_mirror/${key}" 2>/dev/null || true
+          done < /tmp/deleted_files.txt
+
+      - name: Upload DB backup to MEGA
+        if: env.SHOULD_BACKUP == 'true'
+        run: |
+          megaput --path /Root/strapi-backups "strapi_db_${TIMESTAMP}.dump"
+
+
+      - name: Update hash and manifest files
+        if: env.SHOULD_BACKUP == 'true'
+        run: |
+          # Update DB hash
+          echo "$DB_HASH" > /tmp/last_db_hash.txt
+          megarm /Root/strapi-backups/last_db_hash.txt 2>/dev/null || true
+          megaput --path /Root/strapi-backups /tmp/last_db_hash.txt
+
+          # Update R2 hash
+          echo "$R2_HASH" > /tmp/last_r2_hash.txt
+          megarm /Root/strapi-backups/last_r2_hash.txt 2>/dev/null || true
+          megaput --path /Root/strapi-backups /tmp/last_r2_hash.txt
+
+          # Update R2 manifest (for next run's diff comparison)
+          if [ -f /tmp/current_manifest.json ]; then
+            megarm /Root/strapi-backups/r2_manifest.json 2>/dev/null || true
+            megaput --path /Root/strapi-backups /tmp/current_manifest.json
+            # Rename on MEGA
+            megarm /Root/strapi-backups/r2_manifest.json 2>/dev/null || true
+            mv /tmp/current_manifest.json /tmp/r2_manifest.json
+            megaput --path /Root/strapi-backups /tmp/r2_manifest.json
+          fi
+
+      - name: Keep only last 2 DB backups
+        if: env.SHOULD_BACKUP == 'true'
+        run: |
+          megals /Root/strapi-backups | grep "strapi_db_" | sort | head -n -2 | while read -r file; do
+            echo "Deleting old DB backup: $file"
+            megarm "$file"
+          done
+
+
+      - name: Cleanup
+        if: always()
+        run: rm -f ~/.megarc
