@@ -45,7 +45,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          DB_HASH=$(psql "$DATABASE_URL" -t -A -c "
+          DB_HASH=$(/usr/lib/postgresql/18/bin/psql "$DATABASE_URL" -t -A -c "
             SELECT md5(string_agg(table_hash, ',' ORDER BY table_name))
             FROM (
               SELECT c.relname AS table_name,
