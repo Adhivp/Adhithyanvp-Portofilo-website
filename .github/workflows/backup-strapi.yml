@@ -12,23 +12,29 @@ jobs:
     steps:
       - name: Install tools
         run: |
+          # Install PostgreSQL 18 client (matching Neon server version)
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
           sudo apt-get update
-          sudo apt-get install -y postgresql-client megatools
+          sudo apt-get install -y postgresql-client-18
+
+          # Install MEGAcmd (official MEGA client)
+          wget -q https://mega.nz/linux/repo/xUbuntu_24.04/amd64/megacmd-xUbuntu_24.04_amd64.deb
+          sudo apt-get install -y ./megacmd-xUbuntu_24.04_amd64.deb
+
+          # Install AWS CLI
           pip install awscli
 
-      - name: Create .megarc config
+      - name: Login to MEGA
         env:
           MEGA_EMAIL: ${{ secrets.MEGA_EMAIL }}
           MEGA_PASSWORD: ${{ secrets.MEGA_PASSWORD }}
         run: |
-          echo "[Login]" > ~/.megarc
-          echo "Username = $MEGA_EMAIL" >> ~/.megarc
-          echo "Password = $MEGA_PASSWORD" >> ~/.megarc
-          chmod 600 ~/.megarc
+          mega-login "$MEGA_EMAIL" "$MEGA_PASSWORD"
 
       - name: Create MEGA backup folder
         run: |
-          megamkdir /Root/strapi-backups 2>/dev/null || true
+          mega-mkdir /strapi-backups 2>/dev/null || true
 
       - name: Generate DB hash
         env:
@@ -63,14 +69,14 @@ jobs:
       - name: Check what needs backup
         run: |
           # Download previous hashes from MEGA
-          megaget /Root/strapi-backups/last_db_hash.txt --path /tmp/ 2>/dev/null || echo "no_previous" > /tmp/last_db_hash.txt
-          megaget /Root/strapi-backups/last_r2_hash.txt --path /tmp/ 2>/dev/null || echo "no_previous" > /tmp/last_r2_hash.txt
+          mega-get /strapi-backups/last_db_hash.txt /tmp/last_db_hash.txt 2>/dev/null || echo "no_previous" > /tmp/last_db_hash.txt
+          mega-get /strapi-backups/last_r2_hash.txt /tmp/last_r2_hash.txt 2>/dev/null || echo "no_previous" > /tmp/last_r2_hash.txt
 
           PREV_DB_HASH=$(cat /tmp/last_db_hash.txt)
           PREV_R2_HASH=$(cat /tmp/last_r2_hash.txt)
 
-          # Count existing backups
-          BACKUP_COUNT=$(megals /Root/strapi-backups | grep "strapi_" | grep -c "\.dump\|\.tar.gz" || echo "0")
+          # Count existing DB backups
+          BACKUP_COUNT=$(mega-ls /strapi-backups 2>/dev/null | grep -c "strapi_db_" || echo "0")
 
           echo "Previous DB hash:  ${PREV_DB_HASH}"
           echo "Current DB hash:   ${DB_HASH}"
@@ -128,11 +134,10 @@ jobs:
             --query 'Contents[].{Key:Key,ETag:ETag,Size:Size}' --output json > /tmp/current_manifest.json
 
           # Get previous manifest from MEGA
-          megaget /Root/strapi-backups/r2_manifest.json --path /tmp/ 2>/dev/null || echo "[]" > /tmp/r2_manifest.json
-          cp /tmp/r2_manifest.json /tmp/prev_manifest.json 2>/dev/null || echo "[]" > /tmp/prev_manifest.json
+          mega-get /strapi-backups/r2_manifest.json /tmp/prev_manifest.json 2>/dev/null || echo "[]" > /tmp/prev_manifest.json
 
           # Create MEGA mirror folder
-          megamkdir /Root/strapi-backups/r2_mirror 2>/dev/null || true
+          mega-mkdir /strapi-backups/r2_mirror 2>/dev/null || true
 
           # Find new/changed/deleted files
           node -e "
@@ -158,14 +163,14 @@ jobs:
             # Create subdirectory in MEGA if needed
             DIR=$(dirname "$key")
             if [ "$DIR" != "." ]; then
-              megamkdir "/Root/strapi-backups/r2_mirror/${DIR}" 2>/dev/null || true
+              mega-mkdir "/strapi-backups/r2_mirror/${DIR}" 2>/dev/null || true
             fi
             # Download from R2
             mkdir -p "/tmp/r2_dl/$(dirname "$key")"
             aws s3 cp "s3://${R2_BUCKET}/${key}" "/tmp/r2_dl/${key}" --endpoint-url "$R2_ENDPOINT"
             # Remove old version from MEGA and upload new
-            megarm "/Root/strapi-backups/r2_mirror/${key}" 2>/dev/null || true
-            megaput --path "/Root/strapi-backups/r2_mirror/${DIR:-}" "/tmp/r2_dl/${key}"
+            mega-rm "/strapi-backups/r2_mirror/${key}" 2>/dev/null || true
+            mega-put "/tmp/r2_dl/${key}" "/strapi-backups/r2_mirror/${DIR}"
             # Free disk immediately
             rm -f "/tmp/r2_dl/${key}"
           done < /tmp/changed_files.txt
@@ -173,47 +178,42 @@ jobs:
           # Delete removed files from MEGA mirror
           while IFS= read -r key; do
             [ -z "$key" ] && continue
-            megarm "/Root/strapi-backups/r2_mirror/${key}" 2>/dev/null || true
+            mega-rm "/strapi-backups/r2_mirror/${key}" 2>/dev/null || true
           done < /tmp/deleted_files.txt
 
       - name: Upload DB backup to MEGA
         if: env.SHOULD_BACKUP == 'true'
         run: |
-          megaput --path /Root/strapi-backups "strapi_db_${TIMESTAMP}.dump"
-
+          mega-put "strapi_db_${TIMESTAMP}.dump" /strapi-backups/
 
       - name: Update hash and manifest files
         if: env.SHOULD_BACKUP == 'true'
         run: |
           # Update DB hash
           echo "$DB_HASH" > /tmp/last_db_hash.txt
-          megarm /Root/strapi-backups/last_db_hash.txt 2>/dev/null || true
-          megaput --path /Root/strapi-backups /tmp/last_db_hash.txt
+          mega-rm /strapi-backups/last_db_hash.txt 2>/dev/null || true
+          mega-put /tmp/last_db_hash.txt /strapi-backups/
 
           # Update R2 hash
           echo "$R2_HASH" > /tmp/last_r2_hash.txt
-          megarm /Root/strapi-backups/last_r2_hash.txt 2>/dev/null || true
-          megaput --path /Root/strapi-backups /tmp/last_r2_hash.txt
+          mega-rm /strapi-backups/last_r2_hash.txt 2>/dev/null || true
+          mega-put /tmp/last_r2_hash.txt /strapi-backups/
 
           # Update R2 manifest (for next run's diff comparison)
           if [ -f /tmp/current_manifest.json ]; then
-            megarm /Root/strapi-backups/r2_manifest.json 2>/dev/null || true
-            megaput --path /Root/strapi-backups /tmp/current_manifest.json
-            # Rename on MEGA
-            megarm /Root/strapi-backups/r2_manifest.json 2>/dev/null || true
-            mv /tmp/current_manifest.json /tmp/r2_manifest.json
-            megaput --path /Root/strapi-backups /tmp/r2_manifest.json
+            mega-rm /strapi-backups/r2_manifest.json 2>/dev/null || true
+            cp /tmp/current_manifest.json /tmp/r2_manifest.json
+            mega-put /tmp/r2_manifest.json /strapi-backups/
           fi
 
       - name: Keep only last 2 DB backups
         if: env.SHOULD_BACKUP == 'true'
         run: |
-          megals /Root/strapi-backups | grep "strapi_db_" | sort | head -n -2 | while read -r file; do
+          mega-ls /strapi-backups | grep "strapi_db_" | sort | head -n -2 | while read -r file; do
             echo "Deleting old DB backup: $file"
-            megarm "$file"
+            mega-rm "/strapi-backups/$file" 2>/dev/null || true
           done
 
-
-      - name: Cleanup
+      - name: Logout from MEGA
         if: always()
-        run: rm -f ~/.megarc
+        run: mega-logout 2>/dev/null || true
