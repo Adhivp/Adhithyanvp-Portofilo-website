@@ -13,7 +13,8 @@ jobs:
       - name: Install tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y postgresql-client megatools awscli
+          sudo apt-get install -y postgresql-client megatools
+          pip install awscli
 
       - name: Create .megarc config
         env:
