@@ -123,7 +123,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           TIMESTAMP=$(date +%Y-%m-%d)
-          pg_dump "$DATABASE_URL" --no-owner --no-privileges --format=custom -f "strapi_db_${TIMESTAMP}.dump"
+          /usr/lib/postgresql/18/bin/pg_dump "$DATABASE_URL" --no-owner --no-privileges --format=custom -f "strapi_db_${TIMESTAMP}.dump"
           echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
 
       - name: Sync R2 changes to MEGA mirror (upload only new/changed, delete removed)
