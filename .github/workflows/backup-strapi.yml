@@ -17,24 +17,24 @@ jobs:
           curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
           sudo apt-get update
           sudo apt-get install -y postgresql-client-18
-
-          # Install MEGAcmd (official MEGA client)
-          wget -q https://mega.nz/linux/repo/xUbuntu_24.04/amd64/megacmd-xUbuntu_24.04_amd64.deb
-          sudo apt-get install -y ./megacmd-xUbuntu_24.04_amd64.deb
-
-          # Install AWS CLI
           pip install awscli
 
-      - name: Login to MEGA
+      - name: Configure rclone for MEGA
         env:
           MEGA_EMAIL: ${{ secrets.MEGA_EMAIL }}
           MEGA_PASSWORD: ${{ secrets.MEGA_PASSWORD }}
         run: |
-          mega-login "$MEGA_EMAIL" "$MEGA_PASSWORD"
+          mkdir -p ~/.config/rclone
+          cat > ~/.config/rclone/rclone.conf << EOF
+          [mega]
+          type = mega
+          user = ${MEGA_EMAIL}
+          pass = $(rclone obscure "$MEGA_PASSWORD")
+          EOF
 
       - name: Create MEGA backup folder
         run: |
-          mega-mkdir /strapi-backups 2>/dev/null || true
+          rclone mkdir mega:/strapi-backups
 
       - name: Generate DB hash
         env:
@@ -69,14 +69,17 @@ jobs:
       - name: Check what needs backup
         run: |
           # Download previous hashes from MEGA
-          mega-get /strapi-backups/last_db_hash.txt /tmp/last_db_hash.txt 2>/dev/null || echo "no_previous" > /tmp/last_db_hash.txt
-          mega-get /strapi-backups/last_r2_hash.txt /tmp/last_r2_hash.txt 2>/dev/null || echo "no_previous" > /tmp/last_r2_hash.txt
+          rclone copy mega:/strapi-backups/last_db_hash.txt /tmp/ 2>/dev/null || echo "no_previous" > /tmp/last_db_hash.txt
+          rclone copy mega:/strapi-backups/last_r2_hash.txt /tmp/ 2>/dev/null || echo "no_previous" > /tmp/last_r2_hash.txt
+
+          [ -f /tmp/last_db_hash.txt ] || echo "no_previous" > /tmp/last_db_hash.txt
+          [ -f /tmp/last_r2_hash.txt ] || echo "no_previous" > /tmp/last_r2_hash.txt
 
           PREV_DB_HASH=$(cat /tmp/last_db_hash.txt)
           PREV_R2_HASH=$(cat /tmp/last_r2_hash.txt)
 
           # Count existing DB backups
-          BACKUP_COUNT=$(mega-ls /strapi-backups 2>/dev/null | grep -c "strapi_db_" || echo "0")
+          BACKUP_COUNT=$(rclone ls mega:/strapi-backups 2>/dev/null | grep -c "strapi_db_" || echo "0")
 
           echo "Previous DB hash:  ${PREV_DB_HASH}"
           echo "Current DB hash:   ${DB_HASH}"
@@ -134,10 +137,8 @@ jobs:
             --query 'Contents[].{Key:Key,ETag:ETag,Size:Size}' --output json > /tmp/current_manifest.json
 
           # Get previous manifest from MEGA
-          mega-get /strapi-backups/r2_manifest.json /tmp/prev_manifest.json 2>/dev/null || echo "[]" > /tmp/prev_manifest.json
-
-          # Create MEGA mirror folder
-          mega-mkdir /strapi-backups/r2_mirror 2>/dev/null || true
+          rclone copy mega:/strapi-backups/r2_manifest.json /tmp/ 2>/dev/null || true
+          [ -f /tmp/r2_manifest.json ] && cp /tmp/r2_manifest.json /tmp/prev_manifest.json || echo "[]" > /tmp/prev_manifest.json
 
           # Find new/changed/deleted files
           node -e "
@@ -157,63 +158,54 @@ jobs:
             console.log('Unchanged (already in MEGA): ' + (curr.length - changed.length) + ' files');
           "
 
-          # Download changed files from R2 and upload directly to MEGA
+          # Download changed files from R2 and upload to MEGA
           while IFS= read -r key; do
             [ -z "$key" ] && continue
-            # Create subdirectory in MEGA if needed
-            DIR=$(dirname "$key")
-            if [ "$DIR" != "." ]; then
-              mega-mkdir "/strapi-backups/r2_mirror/${DIR}" 2>/dev/null || true
-            fi
-            # Download from R2
             mkdir -p "/tmp/r2_dl/$(dirname "$key")"
             aws s3 cp "s3://${R2_BUCKET}/${key}" "/tmp/r2_dl/${key}" --endpoint-url "$R2_ENDPOINT"
-            # Remove old version from MEGA and upload new
-            mega-rm "/strapi-backups/r2_mirror/${key}" 2>/dev/null || true
-            mega-put "/tmp/r2_dl/${key}" "/strapi-backups/r2_mirror/${DIR}"
-            # Free disk immediately
+            rclone copy "/tmp/r2_dl/${key}" "mega:/strapi-backups/r2_mirror/$(dirname "$key")/"
             rm -f "/tmp/r2_dl/${key}"
           done < /tmp/changed_files.txt
 
           # Delete removed files from MEGA mirror
           while IFS= read -r key; do
             [ -z "$key" ] && continue
-            mega-rm "/strapi-backups/r2_mirror/${key}" 2>/dev/null || true
+            rclone deletefile "mega:/strapi-backups/r2_mirror/${key}" 2>/dev/null || true
           done < /tmp/deleted_files.txt
 
       - name: Upload DB backup to MEGA
         if: env.SHOULD_BACKUP == 'true'
         run: |
-          mega-put "strapi_db_${TIMESTAMP}.dump" /strapi-backups/
+          rclone copy "strapi_db_${TIMESTAMP}.dump" mega:/strapi-backups/
 
       - name: Update hash and manifest files
         if: env.SHOULD_BACKUP == 'true'
         run: |
           # Update DB hash
           echo "$DB_HASH" > /tmp/last_db_hash.txt
-          mega-rm /strapi-backups/last_db_hash.txt 2>/dev/null || true
-          mega-put /tmp/last_db_hash.txt /strapi-backups/
+          rclone deletefile mega:/strapi-backups/last_db_hash.txt 2>/dev/null || true
+          rclone copy /tmp/last_db_hash.txt mega:/strapi-backups/
 
           # Update R2 hash
           echo "$R2_HASH" > /tmp/last_r2_hash.txt
-          mega-rm /strapi-backups/last_r2_hash.txt 2>/dev/null || true
-          mega-put /tmp/last_r2_hash.txt /strapi-backups/
+          rclone deletefile mega:/strapi-backups/last_r2_hash.txt 2>/dev/null || true
+          rclone copy /tmp/last_r2_hash.txt mega:/strapi-backups/
 
-          # Update R2 manifest (for next run's diff comparison)
+          # Update R2 manifest
           if [ -f /tmp/current_manifest.json ]; then
-            mega-rm /strapi-backups/r2_manifest.json 2>/dev/null || true
+            rclone deletefile mega:/strapi-backups/r2_manifest.json 2>/dev/null || true
             cp /tmp/current_manifest.json /tmp/r2_manifest.json
-            mega-put /tmp/r2_manifest.json /strapi-backups/
+            rclone copy /tmp/r2_manifest.json mega:/strapi-backups/
           fi
 
       - name: Keep only last 2 DB backups
         if: env.SHOULD_BACKUP == 'true'
         run: |
-          mega-ls /strapi-backups | grep "strapi_db_" | sort | head -n -2 | while read -r file; do
+          rclone ls mega:/strapi-backups | grep "strapi_db_" | awk '{print $2}' | sort | head -n -2 | while read -r file; do
             echo "Deleting old DB backup: $file"
-            mega-rm "/strapi-backups/$file" 2>/dev/null || true
+            rclone deletefile "mega:/strapi-backups/$file" 2>/dev/null || true
           done
 
-      - name: Logout from MEGA
+      - name: Cleanup
         if: always()
-        run: mega-logout 2>/dev/null || true
+        run: rm -f ~/.config/rclone/rclone.conf
