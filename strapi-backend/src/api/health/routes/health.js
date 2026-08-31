@@ -2,7 +2,7 @@ module.exports = {
   routes: [
     {
       method: 'GET',
-      path: '/api/health',
+      path: '/health',
       handler: 'health.check',
       config: {
         auth: false,
